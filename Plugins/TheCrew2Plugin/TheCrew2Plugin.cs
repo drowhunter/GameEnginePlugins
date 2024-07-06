@@ -1,8 +1,8 @@
-// Decompiled with JetBrains decompiler
-// Type: YawVRYawVR_Game_Engine.Plugin.TheCrewPlugin
-// Assembly: TheCrew, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 4722EE52-F477-46B0-8A58-A26AC0A5A193
-// Assembly location: G:\apps\GameEngine\Gameplugins\TheCrewPlugin.dll
+﻿// Decompiled with JetBrains decompiler
+// Type: YawVRYawVR_Game_Engine.Plugin.TheCrew2Plugin
+// Assembly: TheCrew2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 57EA1049-7C99-4299-9B7E-8E15049A09F6
+// Assembly location: C:\apps\yawge\Gameplugins\TheCrew2Plugin.dll
 
 using System;
 using System.Collections.Generic;
@@ -13,16 +13,16 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using TheCrew.Properties;
+using TheCrew2.Properties;
 using YawGEAPI;
 
 
 namespace YawVRYawVR_Game_Engine.Plugin
 {
   [Export(typeof (Game))]
-  [ExportMetadata("Name", "The Crew")]
+  [ExportMetadata("Name", "The Crew 2")]
   [ExportMetadata("Version", "1.0")]
-  public class TheCrewPlugin : Game
+  public class TheCrew2Plugin : Game
   {
     private volatile bool running = false;
     private Thread readthread;
@@ -31,7 +31,7 @@ namespace YawVRYawVR_Game_Engine.Plugin
     private IMainFormDispatcher dispatcher;
     private IProfileManager controller;
 
-    public int STEAM_ID => 241560;
+    public int STEAM_ID => 646910;
 
     public bool PATCH_AVAILABLE => true;
 
@@ -157,7 +157,7 @@ namespace YawVRYawVR_Game_Engine.Plugin
     {
       try
       {
-        string str = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/The Crew";
+        string str = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/The Crew 2";
         Console.WriteLine(str);
         string tempFileName = Path.GetTempFileName();
         this.dispatcher.GetInstallPath(str);

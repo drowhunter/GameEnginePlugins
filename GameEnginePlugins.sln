@@ -5,6 +5,12 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheCrewPlugin", "Plugins\TheCrewPlugin\TheCrewPlugin.csproj", "{693E177B-95EC-441A-86FB-AF1F078F3EA1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheCrew2Plugin", "Plugins\TheCrew2Plugin\TheCrew2Plugin.csproj", "{E8B84654-CBF9-4ECA-AA32-628E5E20CBDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedOutPlugin", "Plugins\RedOutPlugin\RedOutPlugin.csproj", "{2343B7ED-E917-4FF8-823E-35A0AF259635}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YawGEAPI", "YawGEAPI\YawGEAPI.csproj", "{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +21,18 @@ Global
 		{693E177B-95EC-441A-86FB-AF1F078F3EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{693E177B-95EC-441A-86FB-AF1F078F3EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{693E177B-95EC-441A-86FB-AF1F078F3EA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8B84654-CBF9-4ECA-AA32-628E5E20CBDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8B84654-CBF9-4ECA-AA32-628E5E20CBDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8B84654-CBF9-4ECA-AA32-628E5E20CBDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8B84654-CBF9-4ECA-AA32-628E5E20CBDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
