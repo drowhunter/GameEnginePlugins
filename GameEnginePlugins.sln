@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheCrew2Plugin", "Plugins\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedOutPlugin", "Plugins\RedOutPlugin\RedOutPlugin.csproj", "{2343B7ED-E917-4FF8-823E-35A0AF259635}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YawGEAPI", "YawGEAPI\YawGEAPI.csproj", "{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.Build.0 = Release|Any CPU
-		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63FC8D36-A0B7-4F21-840E-14C3E7CFE9F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
