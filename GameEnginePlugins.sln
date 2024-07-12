@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheCrew2Plugin", "Plugins\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedOutPlugin", "Plugins\RedOutPlugin\RedOutPlugin.csproj", "{2343B7ED-E917-4FF8-823E-35A0AF259635}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GT7Plugin", "Plugins\GT7Plugin\GT7Plugin.csproj", "{95D3D9BE-488A-4123-A781-452A96BDC8B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2343B7ED-E917-4FF8-823E-35A0AF259635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95D3D9BE-488A-4123-A781-452A96BDC8B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95D3D9BE-488A-4123-A781-452A96BDC8B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95D3D9BE-488A-4123-A781-452A96BDC8B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95D3D9BE-488A-4123-A781-452A96BDC8B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
