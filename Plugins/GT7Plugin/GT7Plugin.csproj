@@ -34,16 +34,27 @@
     <RootNamespace>YawVR_Game_Engine.Plugin</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PDTools.Crypto">
+      <HintPath>..\..\dlls\PDTools.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="PDTools.SimulatorInterface">
+      <HintPath>..\..\dlls\PDTools.SimulatorInterface.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
     <Reference Include="YawGEAPI">
       <HintPath>..\..\dlls\YawGEAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\GT7Plugin.cs" />
+    <Compile Include="GT7Plugin.cs" />
+    <Compile Include="Maths.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -51,7 +62,12 @@
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Resources\logo2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
