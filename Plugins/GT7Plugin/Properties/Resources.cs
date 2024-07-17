@@ -18,7 +18,7 @@ namespace GT7Plugin.Properties
   [GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
   [DebuggerNonUserCode]
   [CompilerGenerated]
-  internal class Resources
+  public class Resources
   {
     private static ResourceManager resourceMan;
     private static CultureInfo resourceCulture;
@@ -39,13 +39,13 @@ namespace GT7Plugin.Properties
     }
 
     [EditorBrowsable(EditorBrowsableState.Advanced)]
-    internal static CultureInfo Culture
+    public static CultureInfo Culture
     {
       get => GT7Plugin.Properties.Resources.resourceCulture;
       set => GT7Plugin.Properties.Resources.resourceCulture = value;
     }
 
-    internal static Bitmap background
+    public static Bitmap background
     {
       get
       {
@@ -53,22 +53,22 @@ namespace GT7Plugin.Properties
       }
     }
 
-    internal static string defProfile
+    public static string defProfile
     {
       get => GT7Plugin.Properties.Resources.ResourceManager.GetString(nameof (defProfile), GT7Plugin.Properties.Resources.resourceCulture);
     }
 
-    internal static string description
+    public static string description
     {
       get => GT7Plugin.Properties.Resources.ResourceManager.GetString(nameof (description), GT7Plugin.Properties.Resources.resourceCulture);
     }
 
-    internal static Bitmap logo
+    public static Bitmap logo
     {
       get => (Bitmap) GT7Plugin.Properties.Resources.ResourceManager.GetObject(nameof (logo), GT7Plugin.Properties.Resources.resourceCulture);
     }
 
-    internal static Bitmap small
+    public static Bitmap small
     {
       get
       {

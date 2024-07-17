@@ -22,15 +22,16 @@ namespace YawVR_Game_Engine.Plugin
         private volatile bool _running = false;
         private IMainFormDispatcher _dispatcher;
         private IProfileManager _profileManager;
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         private bool _seenPacket = false;
         private Vector3 _previous_local_velocity = new Vector3(0, 0, 0);
         private Vector3 _accel_vector = new Vector3(0, 0, 0);
         private float slip_angle = 0f;
 
-        private float _sampling_rate = 1 / 60;
+        private float _sampling_rate = 1f / 60f;
 
+        private int _previous_gear = 0;
         public int STEAM_ID => 0;
 
         public string PROCESS_NAME => string.Empty;
@@ -47,7 +48,9 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-        private static readonly string[] inputs = new string[10]
+
+
+        private static readonly string[] inputs = new string[]
         {
           "Yaw",
           "Pitch",
@@ -58,7 +61,8 @@ namespace YawVR_Game_Engine.Plugin
           "SlipAngle",
           "AngularVelocityX",
           "AngularVelocityY",
-          "AngularVelocityZ"
+          "AngularVelocityZ",
+          "GearShift"
         };
 
         public LedEffect DefaultLED()
@@ -152,7 +156,15 @@ namespace YawVR_Game_Engine.Plugin
         {
             // Print the packet contents to the console
             //Console.SetCursorPosition(0, 0);
-            packet.PrintPacket(false);
+            try
+            {
+                packet.PrintPacket(false);
+
+            } 
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error printing packet: {e.Message}");
+            }
 
             // Get the game type the packet was issued from
             SimulatorInterfaceGameType gameType = packet.GameType;
@@ -197,7 +209,7 @@ namespace YawVR_Game_Engine.Plugin
             _previous_local_velocity = local_velocity;
 
             // Calculate roll/pitch/yaw based on quaternion
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(Q);   
+            var (roll, pitch, yaw) = Maths.roll_pitch_yawge(Q);   
             
 
 
@@ -211,6 +223,12 @@ namespace YawVR_Game_Engine.Plugin
             _profileManager.SetInput(7, packet.AngularVelocity.X);
             _profileManager.SetInput(8, packet.AngularVelocity.Y);
             _profileManager.SetInput(9, packet.AngularVelocity.Z);
+
+            _previous_gear = packet.CurrentGear;
+            var deltaGear = packet.CurrentGear - _previous_gear;
+
+            _profileManager.SetInput(10, deltaGear);
+            
         }
     }
 

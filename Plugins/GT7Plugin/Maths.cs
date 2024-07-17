@@ -100,7 +100,7 @@ namespace YawVR_Game_Engine.Plugin
             var pitch_deg = RadianToDegree(loc_pitch);
             var yaw_deg = RadianToDegree(loc_yaw);
 
-            return (roll_deg, pitch_deg, yaw_deg);
+            return (roll_deg, -pitch_deg, yaw_deg);
 
         }
 
