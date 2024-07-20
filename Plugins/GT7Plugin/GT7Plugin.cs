@@ -29,6 +29,8 @@ namespace YawVR_Game_Engine.Plugin
         private Vector3 _accel_vector = new Vector3(0, 0, 0);
         private float slip_angle = 0f;
 
+        private float _previous_mph = 0;
+
         private float _sampling_rate = 1f / 60f;
 
         private int _previous_gear = 0;
@@ -54,7 +56,7 @@ namespace YawVR_Game_Engine.Plugin
         {
           "Yaw",
           "Pitch",
-          "Roll",
+          "Roll",          
           "AccX",
           "AccY",
           "AccZ",
@@ -62,7 +64,10 @@ namespace YawVR_Game_Engine.Plugin
           "AngularVelocityX",
           "AngularVelocityY",
           "AngularVelocityZ",
-          "GearShift"
+          "GearShift",
+          "Surge",
+          "Sway",
+          "YRotation"
         };
 
         public LedEffect DefaultLED()
@@ -93,7 +98,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             this._running = false;
             if (!_cts.IsCancellationRequested)
-            {
+            {https://www.amazon.ca/gp/product/B08YJPRJVB/ref=ewc_pr_img_2?smid=A2AO8XL38SU3ST&psc=1
                 _cts.Cancel();
             }
         }
@@ -186,11 +191,16 @@ namespace YawVR_Game_Engine.Plugin
             var Q = new System.Numerics.Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
             var local_velocity = Maths.WorldVelocity_to_LocalVelocity_Quat(Q, packet.Velocity);
 
-            
-            if(_seenPacket)
+            var surge = 0f;
+            var sway = 0f;
+            var yrot = 0f;
+
+
+            if (_seenPacket)
             {
                 var delta_velocity = local_velocity - _previous_local_velocity;
                 
+
 
                 // divide by sampling rate to get acceleration
                 var acc_vector = delta_velocity / _sampling_rate;
@@ -202,15 +212,16 @@ namespace YawVR_Game_Engine.Plugin
                 }
 
 
+                (surge, sway, yrot) = CalculateLateralForces(packet.MetersPerSecond, packet.CalculatedMaxSpeed, packet.AngularVelocity.Y);
+
 
             }
 
-
+            _previous_mph = packet.MetersPerSecond;
             _previous_local_velocity = local_velocity;
 
             // Calculate roll/pitch/yaw based on quaternion
-            var (roll, pitch, yaw) = Maths.roll_pitch_yawge(Q);   
-            
+            var (roll, pitch, yaw) = Maths.roll_pitch_yawge(Q);
 
 
             _profileManager.SetInput(0, yaw);
@@ -228,7 +239,57 @@ namespace YawVR_Game_Engine.Plugin
             var deltaGear = packet.CurrentGear - _previous_gear;
 
             _profileManager.SetInput(10, deltaGear);
+            _profileManager.SetInput(11, surge);
+            _profileManager.SetInput(12, sway);
+            _profileManager.SetInput(13, yrot);
             
+            
+        }
+
+        double radtodeg = 180 / Math.PI;
+
+        double degtorad = 180 / Math.PI;
+
+        public (float surge, float sway, float yrot) CalculateLateralForces(float speed, float speedmax, float angularVelocityY)
+        {
+            var delta_speed = speed - _previous_mph;
+
+            var surge = delta_speed * 10; // 0 - 1.5 range
+
+
+            float speedPct = speed / speedmax;   // + (speedmax > 0 ? speedmax : 400);
+
+            var anglePct = (radtodeg * angularVelocityY) / 90.0f;
+
+
+
+            //var v = (1 / (1 / 60f)) * 9.8f;
+
+            //var vx = (float)(speed * Math.Cos(angularVelocityY));
+
+
+            //var vy = (float)(speedPct * 100 * Math.Sin(angularVelocityY));
+
+            //var sway = speedPct * angularVelocityY * 10;
+
+
+            //var force = 100;
+
+            //var speedWeight = .7f * force;
+            //var angleWeight = .3f * force;
+
+            //var aa = anglePct >= .002 ? 1 : 0;
+
+            
+
+            //sway = (float) (anglePct * angleWeight +  speedPct * speedWeight);
+
+            //var speedfactor = speedWeight * speedPct * aa;
+            //var anglefactor = anglePct * angleWeight;
+
+            var sway = speedPct * anglePct;
+
+            return (-surge, (float) -sway, (float)anglePct);
         }
     }
 

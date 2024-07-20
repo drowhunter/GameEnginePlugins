@@ -68,4 +68,8 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "E:\_Apps\GameEngine_2_6\Gameplugins"
+xcopy /Y "$(TargetDir)$(TargetName).pdb" "E:\_Apps\GameEngine_2_6\Gameplugins"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

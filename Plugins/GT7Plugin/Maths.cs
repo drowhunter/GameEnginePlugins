@@ -87,7 +87,6 @@ namespace YawVR_Game_Engine.Plugin
             var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
 
 
-
             // Compute the roll, pitch, and yaw angles in radians
             var loc_roll = (float) q_norm.toRollFromYUp();
 
@@ -106,13 +105,17 @@ namespace YawVR_Game_Engine.Plugin
 
         public static Vector3 WorldVelocity_to_LocalVelocity(Quaternion q, Vector3 vw)
         {
+            var qn = Quaternion.Normalize(q);
 
-            Quaternion q_conj = Quaternion.Conjugate(q);
+            Quaternion q_conj = Quaternion.Conjugate(qn);
 
+
+            
             // Convert quaternion to rotation matrix
-            var r = Matrix4x4.CreateFromQuaternion(q_conj);            
+            //var r = Matrix4x4.CreateFromQuaternion(q_conj);
+            //
 
-            var retval = Vector3.Transform(vw, r);
+            var retval = Vector3.Transform( Vector3.Transform(vw, q), q_conj);
 
             return retval;
 
@@ -127,10 +130,10 @@ namespace YawVR_Game_Engine.Plugin
 
         public static Vector3 WorldVelocity_to_LocalVelocity_Quat(Quaternion q, Vector3 v_world)
         {
-            //var q_norm= Quaternion.Normalize(q);
+            var qn= Quaternion.Normalize(q);
            
-
-            Quaternion q_conj = Quaternion.Conjugate(q);
+            
+            Quaternion q_conj = Quaternion.Conjugate(qn);
 
             Quaternion l_world = q * new Quaternion(v_world, 0) * q_conj;
 

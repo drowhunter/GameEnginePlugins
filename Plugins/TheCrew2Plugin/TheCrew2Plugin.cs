@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Threading;
 using TheCrew2.Properties;
 using YawGEAPI;
+using Syroot.BinaryData.Memory;
 
 
 namespace YawVRYawVR_Game_Engine.Plugin
@@ -118,39 +119,24 @@ namespace YawVRYawVR_Game_Engine.Plugin
     {
       while (this.running)
       {
-        byte[] numArray = this.receivingUdpClient.Receive(ref this.RemoteIpEndPoint);
-        float single1 = BitConverter.ToSingle(numArray, 4);
-        float single2 = BitConverter.ToSingle(numArray, 8);
-        float single3 = BitConverter.ToSingle(numArray, 12);
-        float single4 = BitConverter.ToSingle(numArray, 16);
-        float single5 = BitConverter.ToSingle(numArray, 20);
-        float single6 = BitConverter.ToSingle(numArray, 24);
-        float single7 = BitConverter.ToSingle(numArray, 28);
-        float single8 = BitConverter.ToSingle(numArray, 32);
-        float single9 = BitConverter.ToSingle(numArray, 36);
-        float single10 = BitConverter.ToSingle(numArray, 40);
-        float single11 = BitConverter.ToSingle(numArray, 44);
-        float single12 = BitConverter.ToSingle(numArray, 48);
-        float single13 = BitConverter.ToSingle(numArray, 52);
-        float single14 = BitConverter.ToSingle(numArray, 56);
-        float single15 = BitConverter.ToSingle(numArray, 60);
-        BitConverter.ToSingle(numArray, 64);
-        this.controller.SetInput(0, single1 * 57.295f);
-        this.controller.SetInput(1, single2 * 57.295f);
-        this.controller.SetInput(2, single3 * 57.295f);
-        this.controller.SetInput(3, single4 * 57.295f);
-        this.controller.SetInput(4, single5 * 57.295f);
-        this.controller.SetInput(5, single6 * 57.295f);
-        this.controller.SetInput(6, single7);
-        this.controller.SetInput(7, single8);
-        this.controller.SetInput(8, single9);
-        this.controller.SetInput(9, single10);
-        this.controller.SetInput(10, single11);
-        this.controller.SetInput(11, single12);
-        this.controller.SetInput(12, single13);
-        this.controller.SetInput(13, single14);
-        this.controller.SetInput(14, single15);
+        var numArray = this.receivingUdpClient.Receive(ref this.RemoteIpEndPoint);
+
+        var sr = new SpanReader(numArray);
+
+        var data = new float[GetInputData().Length];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+          data[i] = sr.ReadSingle();
+          this.controller.SetInput(i, RadToDeg(data[i]));
+        }
+
       }
+    }
+
+    private float RadToDeg(float rad)
+    {
+      return (float) (rad * (180.0 / Math.PI));
     }
 
     public void PatchGame()
