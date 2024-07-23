@@ -59,7 +59,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Plugins\GT7Plugin\GT7Plugin.csproj">
+    <ProjectReference Include="..\..\Plugins\GT7Plugin\GT7Plugin.csproj">
       <Project>{95d3d9be-488a-4123-a781-452a96bdc8b2}</Project>
       <Name>GT7Plugin</Name>
     </ProjectReference>

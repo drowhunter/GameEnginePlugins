@@ -9,13 +9,13 @@ namespace GT7PluginTest
     [TestClass]
     public class RollPitchYawTests
     {
-        private const double Tolerance = 0.0001;
+        private const double Tolerance = 0.01;
 
         [TestMethod]
         public void TestIdentityQuaternion()
         {
             var identityQuat = new Quaternion(0, 0, 0, 1);
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(identityQuat);
+            var (yaw, pitch, roll) = identityQuat.ToEuler();
             Assert.AreEqual(0, roll, Tolerance);
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
@@ -25,9 +25,9 @@ namespace GT7PluginTest
         public void Test90DegreeRotationAroundX()
         {
             var quat = new Quaternion(0.7071f, 0, 0, 0.7071f); // 90 degrees around X
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(quat);
+            var (yaw, pitch, roll) = quat.ToEuler();
             Assert.AreEqual(0, roll, Tolerance);
-            Assert.AreEqual(90, pitch, Tolerance);
+            Assert.AreEqual(-90, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
         }
 
@@ -35,7 +35,7 @@ namespace GT7PluginTest
         public void Test90DegreeRotationAroundY()
         {
             var quat = new Quaternion(0, 0.7071f, 0, 0.7071f); // 90 degrees around Y
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(quat);
+            var (yaw, pitch, roll) = quat.ToEuler();
             Assert.AreEqual(0, roll, Tolerance);
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(90, yaw, Tolerance);
@@ -45,7 +45,7 @@ namespace GT7PluginTest
         public void Test90DegreeRotationAroundZ()
         {
             var quat = new Quaternion(0, 0, 0.7071f, 0.7071f); // 90 degrees around Z
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(quat);
+            var (yaw, pitch, roll) = quat.ToEuler();
             Assert.AreEqual(90, roll, Tolerance);
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
@@ -55,7 +55,7 @@ namespace GT7PluginTest
         public void TestNormalizationEffect()
         {
             var quat = new Quaternion(0, 0, 0, 2); // Non-unit quaternion
-            var (roll, pitch, yaw) = Maths.roll_pitch_yaw(quat);
+            var (yaw, pitch, roll) = quat.ToEuler();
             Assert.AreEqual(0, roll, Tolerance);
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);

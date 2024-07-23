@@ -7,36 +7,30 @@ using Quaternion = System.Numerics.Quaternion;
 
 namespace YawVR_Game_Engine.Plugin
 {
-    //internal class Vector3
-    //{
-    //    public double x;
-    //    public double y;
-    //    public double z;
-
-    //    public Vector3(double x, double y, double z)
-    //    {
-    //        this.x = x;
-    //        this.y = y;
-    //        this.z = z;
-    //    }
-
-    //    override public string ToString()
-    //    {
-    //        return $"({x}, {y}, {z})";
-    //    }
-    //}
-
-
     internal static class Maths
     {
-        public static Quaternion ConvertQuat(this YawGEAPI.Quaternion q)
+        const double radtodeg = 180 / Math.PI;
+
+        const double degtorad = Math.PI/180 ;
+
+        /// <summary>
+        /// Convert Radians to Degrees
+        /// </summary>
+        /// <param name="rad">radians</param>
+        /// <returns>degrees</returns>
+        public static double RadToDeg(double rad)
         {
-            return new Quaternion((float)q.x, (float)q.y, (float)q.z, (float)q.w);
+            return rad * radtodeg;
         }
 
-        public static float RadianToDegree(float rad)
+        /// <summary>
+        /// Convert Degrees to Radians
+        /// </summary>
+        /// <param name="deg">degrees</param>
+        /// <returns>radians</returns>
+        public static double DegToRad(double deg)
         {
-            return (float) (rad * (180.0f / Math.PI));
+            return deg * degtorad;
         }
 
         public static YawGEAPI.Quaternion Conjugate(this YawGEAPI.Quaternion Q) => new YawGEAPI.Quaternion(-Q.x, -Q.y, -Q.z, Q.w);
@@ -56,52 +50,50 @@ namespace YawVR_Game_Engine.Plugin
 
         }
 
-        public static (float roll, float pitch, float yaw) roll_pitch_yaw(Quaternion q)
+        public static Quaternion ToQuat(this Vector3 v, float degrees = 0f)
         {
-
-            var q_norm = Quaternion.Normalize(q);
-
-
-
-
-            // Compute the roll, pitch, and yaw angles in radians
-            var loc_roll = (float) Math.Atan2(2 * (q_norm.X * q_norm.Y + q_norm.W * q_norm.Z), 1.0 - 2.0 * (q_norm.X * q_norm.X + q_norm.Z * q_norm.Z));
-
-            var loc_pitch = (float)Math.Asin(2 * (q_norm.W * q_norm.X - q_norm.Y * q_norm.Z));
-
-            var loc_yaw = (float) Math.Atan2(2 * (q_norm.X * q_norm.Z + q_norm.W * q_norm.Y), 1.0 - 2.0 * (q_norm.X * q_norm.X + q_norm.Y * q_norm.Y));
-
-            // Convert the angles from radians to degrees
-            var roll_deg = RadianToDegree(loc_roll);
-            var pitch_deg = RadianToDegree(loc_pitch);
-            var yaw_deg = RadianToDegree(loc_yaw);
-
-            return (-roll_deg, -pitch_deg, -yaw_deg);
-
+            return VectorToQuaternion(v.X, v.Y, v.Z, degrees);
         }
 
-        public static (float roll, float pitch, float yaw) roll_pitch_yawge(Quaternion q)
+        public static Quaternion VectorToQuaternion(float x = 0f, float y = 0f, float z = 0f, float degrees = 0f)
+        {
+            Vector3 axis = new Vector3(x , y ,z);
+            var R = new Quaternion(
+                (float)Math.Sin(DegToRad(degrees/2)) * axis.X, 
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Y, 
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Z, 
+                (float)Math.Cos(DegToRad(degrees / 2)));
+
+            return R;
+        }
+
+        /// <summary>
+        /// Convert quaternion to Euler angles
+        /// </summary>
+        /// <param name="q"></param>
+        /// <returns>(yaw, pitch, roll)</returns>
+        public static (float yaw, float pitch, float roll) ToEuler(this Quaternion q)
         {
 
-            //var q_norm = q.Normalize();
             var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
 
 
             // Compute the roll, pitch, and yaw angles in radians
-            var loc_roll = (float) q_norm.toRollFromYUp();
+            var loc_roll = q_norm.toRollFromYUp();
 
-            var loc_pitch = (float) q_norm.toPitchFromYUp();
+            var loc_pitch = q_norm.toPitchFromYUp();
 
-            var loc_yaw = (float) q_norm.toRollFromYUp();
+            var loc_yaw = q_norm.toYawFromYUp();
 
             // Convert the angles from radians to degrees
-            var roll_deg = RadianToDegree(loc_roll);
-            var pitch_deg = RadianToDegree(loc_pitch);
-            var yaw_deg = RadianToDegree(loc_yaw);
+            var roll_deg = RadToDeg(loc_roll);
+            var pitch_deg = RadToDeg(loc_pitch);
+            var yaw_deg = RadToDeg(loc_yaw);
 
-            return (roll_deg, -pitch_deg, yaw_deg);
+            return ((float)yaw_deg,(float) - pitch_deg,(float) roll_deg);
 
         }
+
 
         public static Vector3 WorldVelocity_to_LocalVelocity(Quaternion q, Vector3 vw)
         {
@@ -112,8 +104,10 @@ namespace YawVR_Game_Engine.Plugin
 
             
             // Convert quaternion to rotation matrix
-            //var r = Matrix4x4.CreateFromQuaternion(q_conj);
-            //
+            var r = Matrix4x4.CreateFromQuaternion(q_conj);
+            
+            
+
 
             var retval = Vector3.Transform( Vector3.Transform(vw, q), q_conj);
 
@@ -127,25 +121,65 @@ namespace YawVR_Game_Engine.Plugin
 
         
 
-
-        public static Vector3 WorldVelocity_to_LocalVelocity_Quat(Quaternion q, Vector3 v_world)
+        /// <summary>
+        /// Convert a world space vector to local space
+        /// </summary>
+        /// <param name="q">a normalized quaternion</param>
+        /// <param name="v_world">a global vctor</param>
+        /// <returns></returns>
+        public static Vector3 WorldtoLocal(Quaternion q, Vector3 v_world)
         {
-            var qn= Quaternion.Normalize(q);
-           
-            
-            Quaternion q_conj = Quaternion.Conjugate(qn);
+            Quaternion q_conj = Quaternion.Conjugate(q);
 
-            Quaternion l_world = q * new Quaternion(v_world, 0) * q_conj;
+            Quaternion l_world = q_conj * new Quaternion(v_world, 0) * q;
+
+            return l_world.VectorPart();
+        }
+
+        /// <summary>
+        /// Convert a world space vector to local space
+        /// </summary>
+        /// <param name="q">a normalized quaternion</param>
+        /// <param name="v_local">a global vctor</param>
+        /// <returns></returns>
+        public static Vector3 LocalToWorld(Quaternion q, Vector3 v_local)
+        {
+            Quaternion q_conj = Quaternion.Conjugate(q);
+
+            Quaternion q_world = q * new Quaternion(v_local, 0) * q_conj;
+
+            return q_world.VectorPart();
+        }
+
+        /// <summary>
+        /// Return the vector part of a quaternion
+        /// </summary>
+        /// <param name="q"></param>
+        /// <returns></returns>
+        public static Vector3 VectorPart(this Quaternion q)
+        {
+            return new Vector3(q.X, q.Y, q.Z);
+        }
 
 
-            var v_local = new Vector3(l_world.X, l_world.Y, l_world.Z);
+        public static Vector3 CrossProduct(this Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
+        }
 
-            return v_local;
-            //var R = r.as_matrix();
-            // Calculate local velocity vector
-            //v_local = np.dot(R, v_world)
+        public static Vector3 DotProduct(this Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+        }
 
+        public static float Magnitude(this Vector3 a)
+        {
+            return (float) Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
+        }
 
+        public static float SquaredMagnitude(this Vector3 a) 
+        {
+            return a.X * a.X + a.Y * a.Y + a.Z * a.Z;
         }
 
     }

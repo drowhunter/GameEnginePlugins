@@ -38,9 +38,6 @@
     <Reference Include="PDTools.Crypto">
       <HintPath>..\..\dlls\PDTools.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="PDTools.SimulatorInterface">
-      <HintPath>..\..\dlls\PDTools.SimulatorInterface.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -67,9 +64,16 @@
       <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\external\PDTools\PDTools.SimulatorInterface\PDTools.SimulatorInterface.csproj">
+      <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
+      <Name>PDTools.SimulatorInterface</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(TargetPath)" "E:\_Apps\GameEngine_2_6\Gameplugins"
-xcopy /Y "$(TargetDir)$(TargetName).pdb" "E:\_Apps\GameEngine_2_6\Gameplugins"</PostBuildEvent>
+    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).zip -Force"
+xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
