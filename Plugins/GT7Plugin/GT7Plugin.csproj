@@ -72,8 +72,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).zip -Force"
-xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins"
+    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName).zip -Force"
+REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins"
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
