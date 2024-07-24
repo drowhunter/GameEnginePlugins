@@ -72,8 +72,21 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName).zip -Force"
-REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins"
-</PostBuildEvent>
+  </PropertyGroup>
+  <Target Name="PostBuildMacros">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="Targets" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <VersionNumber Include="@(Targets->'%(Version)')" />
+    </ItemGroup>
+  </Target>
+  <PropertyGroup>
+    <PostBuildEventDependsOn>
+    $(PostBuildEventDependsOn);
+    PostBuildMacros;
+  </PostBuildEventDependsOn>
+    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName)_@(VersionNumber).zip -Force"
+REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins" @(VersionNumber)</PostBuildEvent>
   </PropertyGroup>
 </Project>
