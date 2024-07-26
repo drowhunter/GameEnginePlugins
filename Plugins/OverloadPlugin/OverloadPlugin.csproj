@@ -4,9 +4,9 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{95D3D9BE-488A-4123-A781-452A96BDC8B2}</ProjectGuid>
+    <ProjectGuid>{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>GT7Plugin</AssemblyName>
+    <AssemblyName>OverloadPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>GT7Plugin</RootNamespace>
+    <RootNamespace>OverloadPlugin</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PDTools.Crypto">
@@ -48,7 +48,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GT7Plugin.cs" />
+    <Compile Include="OverloadPlugin.cs" />
     <Compile Include="Maths.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
