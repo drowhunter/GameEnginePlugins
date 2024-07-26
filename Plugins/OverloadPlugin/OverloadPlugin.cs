@@ -31,7 +31,7 @@ namespace YawVR_Game_Engine.Plugin
         public int STEAM_ID => 0;
         public string PROCESS_NAME => string.Empty;
         public bool PATCH_AVAILABLE => false;
-        public string AUTHOR => "Drowhunter";
+        public string AUTHOR => "PhunkaeG";
         public string Description => Resources.description;
         public Image Logo => Resources.logo;
         public Image SmallLogo => Resources.small;
