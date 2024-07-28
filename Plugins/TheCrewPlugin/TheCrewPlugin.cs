@@ -1,9 +1,3 @@
-// Decompiled with JetBrains decompiler
-// Type: YawVRYawVR_Game_Engine.Plugin.TheCrewPlugin
-// Assembly: TheCrew, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 4722EE52-F477-46B0-8A58-A26AC0A5A193
-// Assembly location: G:\apps\GameEngine\Gameplugins\TheCrewPlugin.dll
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -116,41 +110,44 @@ namespace YawVRYawVR_Game_Engine.Plugin
 
     private void ReadFunction()
     {
-      while (this.running)
-      {
-        byte[] numArray = this.receivingUdpClient.Receive(ref this.RemoteIpEndPoint);
-        float single1 = BitConverter.ToSingle(numArray, 4);
-        float single2 = BitConverter.ToSingle(numArray, 8);
-        float single3 = BitConverter.ToSingle(numArray, 12);
-        float single4 = BitConverter.ToSingle(numArray, 16);
-        float single5 = BitConverter.ToSingle(numArray, 20);
-        float single6 = BitConverter.ToSingle(numArray, 24);
-        float single7 = BitConverter.ToSingle(numArray, 28);
-        float single8 = BitConverter.ToSingle(numArray, 32);
-        float single9 = BitConverter.ToSingle(numArray, 36);
-        float single10 = BitConverter.ToSingle(numArray, 40);
-        float single11 = BitConverter.ToSingle(numArray, 44);
-        float single12 = BitConverter.ToSingle(numArray, 48);
-        float single13 = BitConverter.ToSingle(numArray, 52);
-        float single14 = BitConverter.ToSingle(numArray, 56);
-        float single15 = BitConverter.ToSingle(numArray, 60);
-        BitConverter.ToSingle(numArray, 64);
-        this.controller.SetInput(0, single1 * 57.295f);
-        this.controller.SetInput(1, single2 * 57.295f);
-        this.controller.SetInput(2, single3 * 57.295f);
-        this.controller.SetInput(3, single4 * 57.295f);
-        this.controller.SetInput(4, single5 * 57.295f);
-        this.controller.SetInput(5, single6 * 57.295f);
-        this.controller.SetInput(6, single7);
-        this.controller.SetInput(7, single8);
-        this.controller.SetInput(8, single9);
-        this.controller.SetInput(9, single10);
-        this.controller.SetInput(10, single11);
-        this.controller.SetInput(11, single12);
-        this.controller.SetInput(12, single13);
-        this.controller.SetInput(13, single14);
-        this.controller.SetInput(14, single15);
-      }
+        while (this.running)
+        {
+            byte[] numArray = this.receivingUdpClient.Receive(ref this.RemoteIpEndPoint);
+
+            
+
+            float single1 = BitConverter.ToSingle(numArray, 4);
+            float single2 = BitConverter.ToSingle(numArray, 8);
+            float single3 = BitConverter.ToSingle(numArray, 12);
+            float single4 = BitConverter.ToSingle(numArray, 16);
+            float single5 = BitConverter.ToSingle(numArray, 20);
+            float single6 = BitConverter.ToSingle(numArray, 24);
+            float single7 = BitConverter.ToSingle(numArray, 28);
+            float single8 = BitConverter.ToSingle(numArray, 32);
+            float single9 = BitConverter.ToSingle(numArray, 36);
+            float single10 = BitConverter.ToSingle(numArray, 40);
+            float single11 = BitConverter.ToSingle(numArray, 44);
+            float single12 = BitConverter.ToSingle(numArray, 48);
+            float single13 = BitConverter.ToSingle(numArray, 52);
+            float single14 = BitConverter.ToSingle(numArray, 56);
+            float single15 = BitConverter.ToSingle(numArray, 60);
+            BitConverter.ToSingle(numArray, 64);
+            this.controller.SetInput(0, single1 * 57.295f);
+            this.controller.SetInput(1, single2 * 57.295f);
+            this.controller.SetInput(2, single3 * 57.295f);
+            this.controller.SetInput(3, single4 * 57.295f);
+            this.controller.SetInput(4, single5 * 57.295f);
+            this.controller.SetInput(5, single6 * 57.295f);
+            this.controller.SetInput(6, single7);
+            this.controller.SetInput(7, single8);
+            this.controller.SetInput(8, single9);
+            this.controller.SetInput(9, single10);
+            this.controller.SetInput(10, single11);
+            this.controller.SetInput(11, single12);
+            this.controller.SetInput(12, single13);
+            this.controller.SetInput(13, single14);
+            this.controller.SetInput(14, single15);
+        }
     }
 
     public void PatchGame()

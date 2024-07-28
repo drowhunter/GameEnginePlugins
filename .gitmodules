@@ -1,0 +1,4 @@
+[submodule "external/PDTools"]
+	path = external/PDTools
+	url = https://github.com/drowhunter/PDTools.git
+	branch = net6

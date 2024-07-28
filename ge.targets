@@ -1,0 +1,49 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <OutputDir>$(SolutionDir)output\</OutputDir>
+    </PropertyGroup>
+    <Target Name="PostBuildMacros" BeforeTargets="ILRepack">
+        <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+            <Output TaskParameter="Assemblies" ItemName="Targets" />
+        </GetAssemblyIdentity>       
+        <ItemGroup>
+            <VersionNumber Include="@(Targets->'%(Version)')" />
+        </ItemGroup>
+    </Target>
+    <Target Name="CleanOutput" BeforeTargets="PreBuildEvent" AfterTargets="ILRepack">
+        <ItemGroup>
+            <FilesToDelete Include="$(OutputDir)$(TargetName)" />
+        </ItemGroup>
+        <Message Text="[$(ProjectName)]-[CleanOutput] Deleting Files @(FilesToDelete)" Importance="High"/>
+        <Delete Files="@(FilesToDelete)" />
+    </Target>
+    <Target Name="CopyToOutput" AfterTargets="Build">
+        <ItemGroup>
+            <LibraryFiles Include="$(TargetDir)\*.dll" Exclude="$(TargetDir)\YawGEAPI.dll" />
+        </ItemGroup>
+        
+        <Message Text="[$(ProjectName)]-[CopyToOutput] Copying Files $(OutputDir)$(TargetName)\" Importance="High"/>
+        <Copy SourceFiles="@(LibraryFiles)" DestinationFolder="$(OutputDir)$(TargetName)\" >
+            <Output TaskParameter="CopiedFiles" ItemName="CopiedFiles" />
+        </Copy>
+        <Message Text="[$(ProjectName)]-[CopyToOutput] Copied @(CopiedFiles->Count()) files" Importance="High" />
+    </Target>
+    <Target Name="ILRepack" AfterTargets="CopyToOutput" Condition="'@(CopiedFiles->Count())' &gt; 1" >
+        <Message Text="[$(ProjectName)] @(CopiedFiles->Count()) DLLs found, repacking to $(OutputDir)$(TargetName)\" Importance="High"/>
+        <ItemGroup>
+            <Main Include="$(OutputDir)$(TargetName)\$(TargetFileName)" />
+        </ItemGroup>
+        <ItemGroup>
+            <Others Include="$(OutputDir)$(TargetName)\*.dll" Exclude="@(Main)" />
+        </ItemGroup>
+        <Message Text="[$(ProjectName)]-[ILRepack] $(OutputDir) Main: @(Main) Others: @(Others, ', ')" Importance="High"/>
+        <Exec Command="ILRepack /out:$(SolutionDir)output\$(TargetFileName) @(Main) @(Others, ' ')" />
+        <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
+    </Target>
+    <Target Name="MoveSingleFile" AfterTargets="CopyToOutput" Condition="'@(CopiedFiles->Count())' == 1">
+        <Message Text="[$(ProjectName)]-[MoveSingleFile] Moving single file to $(SolutionDir)output\$(TargetName).dll" Importance="High"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)output\" />
+        <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
+    </Target>       
+   
+</Project>
