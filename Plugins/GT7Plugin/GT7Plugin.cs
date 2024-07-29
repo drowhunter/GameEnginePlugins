@@ -199,7 +199,7 @@ namespace YawVR_Game_Engine.Plugin
             _previous_local_velocity = local_velocity;
 
             
-            var (pitch, yaw,  roll) = Maths.ToEuler(Q);
+            var (pitch, yaw,  roll) = Maths.ToEuler(Q, true);
 
 
             _profileManager.SetInput(0, yaw);

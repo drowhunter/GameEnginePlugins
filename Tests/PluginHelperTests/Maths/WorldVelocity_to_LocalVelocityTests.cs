@@ -14,8 +14,8 @@ namespace PluginHelperTests
     [TestClass]
     public class WorldVelocity_to_LocalVelocityTests
     {
-        float cos(float deg) => (float)Math.Cos(Maths.DegToRad(deg) / 2);
-        float sin(float deg) => (float)Math.Sin(Maths.DegToRad(deg) / 2);
+        float cos(float deg) => (float)Math.Cos(Maths.ToRadians(deg) / 2);
+        float sin(float deg) => (float)Math.Sin(Maths.ToRadians(deg) / 2);
 
         [TestMethod]
         public void TestIdentityQuaternion()
@@ -85,11 +85,11 @@ namespace PluginHelperTests
         public void TestYawPitchRollToQuaternion()
         {
             // convert pitch, yaw, roll to quaternion
-            var yaw = (float)Maths.DegToRad(90);
+            var yaw = (float)Maths.ToRadians(90);
             var pitch = 0;
             var roll = 0;
 
-            var q = Maths.YawPitchRollToQuaternion(new Vector3(pitch, yaw, roll));
+            var q = Maths.QuaternionFromEuler(pitch, yaw, roll);
 
         }
 

@@ -14,9 +14,14 @@ namespace PluginHelper
         /// </summary>
         /// <param name="rad">radians</param>
         /// <returns>degrees</returns>
-        public static double RadToDeg(double rad)
+        public static double ToDegrees(double rad)
         {
             return rad * radtodeg;
+        }
+
+        public static float ToDegrees(float rad)
+        {
+            return (float)(rad * radtodeg);
         }
 
         /// <summary>
@@ -24,11 +29,15 @@ namespace PluginHelper
         /// </summary>
         /// <param name="deg">degrees</param>
         /// <returns>radians</returns>
-        public static double DegToRad(double deg)
+        public static double ToRadians(double deg)
         {
             return deg * degtorad;
         }
 
+        public static float ToRadians(float deg)
+        {
+            return (float)(deg * degtorad);
+        }
 
 
         public static Quaternion ToQuat(this Vector3 v, float degrees = 0f)
@@ -36,16 +45,22 @@ namespace PluginHelper
             return VectorToQuaternion(v.X, v.Y, v.Z, degrees);
         }
 
-        public static Quaternion VectorToQuaternion(float x = 0f, float y = 0f, float z = 0f, float degrees = 0f)
+        public static Quaternion VectorToQuaternion(float x = 0f, float y = 0f, float z = 0f, float angle = 0f, bool angleInDegrees = true)
         {
             Vector3 axis = new Vector3(x, y, z);
-            var R = new Quaternion(
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.X,
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Y,
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Z,
-                (float)Math.Cos(DegToRad(degrees / 2)));
 
-            return R;
+            var a = 0f;
+            if (angleInDegrees)
+                a = ToRadians(angle / 2);
+            else
+                a = angle / 2;
+            
+            
+           return new Quaternion(
+                (float)Math.Sin(a) * axis.X,
+                (float)Math.Sin(a) * axis.Y,
+                (float)Math.Sin(a) * axis.Z,
+                (float)Math.Cos(a));
         }
 
         /// <summary>
@@ -53,7 +68,7 @@ namespace PluginHelper
         /// </summary>
         /// <param name="q"></param>
         /// <returns>pitch(x-rotation), yaw (y-rotation) , roll (z-rotation)</returns>
-        public static (float pitch, float yaw, float roll) ToEuler(this Quaternion q)
+        public static (float pitch, float yaw, float roll) ToEuler(this Quaternion q, bool returnDegrees=true)
         {
 
             //var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
@@ -63,10 +78,13 @@ namespace PluginHelper
 
             var loc_yaw = q.ToYaw();
 
+            if(!returnDegrees)
+                return ((float)loc_pitch, (float)loc_yaw, (float)loc_roll);
+
             // Convert the angles from radians to degrees
-            var roll_deg = RadToDeg(loc_roll);
-            var pitch_deg = RadToDeg(loc_pitch);
-            var yaw_deg = RadToDeg(loc_yaw);
+            var roll_deg = ToDegrees(loc_roll);
+            var pitch_deg = ToDegrees(loc_pitch);
+            var yaw_deg = ToDegrees(loc_yaw);
 
             return ((float) pitch_deg, (float)yaw_deg, (float)roll_deg);
 
@@ -114,10 +132,22 @@ namespace PluginHelper
 
 
         // Convert a vector of yaw pitch and roll to a quaternion
-        public static Quaternion YawPitchRollToQuaternion(Vector3 ypr)
+        /// <summary>
+        /// convert euler angles to a "y-up" quaternion
+        /// </summary>
+        /// <param name="pitch"></param>
+        /// <param name="yaw"></param>
+        /// <param name="roll"></param>
+        /// <param name="returnDegrees">return angles in degrees instead of radians</param>
+        /// <returns></returns>
+        public static Quaternion QuaternionFromEuler(float pitch, float yaw, float roll, bool inDegrees = true)
         {
-            return Quaternion.CreateFromYawPitchRoll((float)DegToRad(ypr.X), (float)DegToRad(ypr.Y), (float)DegToRad(ypr.Z));
+            if (!inDegrees)
+                return Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+
+            return Quaternion.CreateFromYawPitchRoll((float)ToRadians(yaw), (float)ToRadians(pitch), (float)ToRadians(roll));
         }
+
 
         /// <summary>
         /// Test if two floats are withing a tolerance of each other
