@@ -6,11 +6,13 @@ using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-
+using Quaternion = System.Numerics.Quaternion;
 using YawGEAPI;
+using PluginHelper;
 
 namespace YawVR_Game_Engine.Plugin
 {
@@ -81,14 +83,26 @@ namespace YawVR_Game_Engine.Plugin
                     float gForceY = float.Parse(parts[7]);
                     float gForceZ = float.Parse(parts[8]);
 
+                    var v = new Vector3(yaw, pitch, roll);
+                    var q = Quaternion.CreateFromYawPitchRoll(v.X, v.Y, v.Z);
+                    var ypr = q.ToEuler();
+
+                    var velocity = new Vector3(VelocityX, VelocityY, VelocityZ);
+
+                    var local_velocity = Maths.WorldtoLocal(Quaternion.Normalize(q), velocity);
                     // Set inputs based on parsed data
                     controller.SetInput(0, yaw);
                     controller.SetInput(1, pitch);
                     controller.SetInput(2, roll);
                     // Example: Assume inputs 3, 4, 5 are set for G-forces
-                    controller.SetInput(3, VelocityX);
-                    controller.SetInput(4, VelocityY);
-                    controller.SetInput(5, VelocityZ);
+                    //controller.SetInput(3, VelocityX);
+                    //controller.SetInput(4, VelocityY);
+                    //controller.SetInput(5, VelocityZ);
+
+                    controller.SetInput(3, local_velocity.X);
+                    controller.SetInput(4, local_velocity.Y);
+                    controller.SetInput(5, local_velocity.Z);
+
                     controller.SetInput(6, gForceX);
                     controller.SetInput(7, gForceY);
                     controller.SetInput(8, gForceZ);
