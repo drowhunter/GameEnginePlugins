@@ -10,6 +10,7 @@ using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
+using Quaternion = System.Numerics.Quaternion;
 
 using YawGEAPI;
 
@@ -179,7 +180,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             // Calculate local velocity based on quaternion (Q is assumed to be normalized)
 
-            var Q = new System.Numerics.Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
+            var Q = new Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
             var local_velocity = Maths.WorldtoLocal(Q, packet.Velocity);
 
             var sway = CalculateCentrifugalAcceleration(local_velocity, packet.AngularVelocity);
@@ -212,7 +213,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public float CalculateCentrifugalAcceleration(Vector3 velocity, Vector3 angularVelocity)
         {
-            var Fc = velocity.Magnitude() * angularVelocity.Magnitude();            
+            var Fc = velocity.Length() * angularVelocity.Length();            
 
             return Fc * (angularVelocity.Y >= 0 ? 1 : -1);
             
