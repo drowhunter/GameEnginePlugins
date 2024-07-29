@@ -1,51 +1,104 @@
-using OverloadTelemetryPlugin.Properties;
-using PDTools.SimulatorInterface;
+using OverloadPluginV2.Properties;
 using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Drawing;
-using System.Net;
-using System.Numerics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Versioning;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using YawGEAPI;
-
-namespace YawVR_Game_Engine.Plugin
+using System.Resources;
+namespace OverloadPlugin
 {
     [Export(typeof(Game))]
-    [ExportMetadata("Name", "Overload")]
+    [ExportMetadata("Name", "Overload")] // Name that will appear in the plugin list.
     [ExportMetadata("Version", "1.0")]
+
     public class OverloadPlugin : Game
     {
-        private volatile bool _running = false;
-        private IMainFormDispatcher _dispatcher;
-        private IProfileManager _profileManager;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        public int STEAM_ID => 448850; // Will start this game on steam based on Steam ID
 
-        private bool _seenPacket = false;
-        
-        private Vector3 _previous_local_velocity = new Vector3(0, 0, 0);
-        
-        private float _sampling_rate = 1f / 60f;
-        
-        public int STEAM_ID => 0;
-        public string PROCESS_NAME => string.Empty;
-        public bool PATCH_AVAILABLE => false;
+        public string PROCESS_NAME => "olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
+
+        public bool PATCH_AVAILABLE => false; // Needs patch
+
         public string AUTHOR => "PhunkaeG";
-        public string Description => Resources.description;
-        public Image Logo => Resources.logo;
-        public Image SmallLogo => Resources.small;
-        public Image Background => Resources.background;
 
-        private static readonly string[] inputs = new string[]
+        public System.Drawing.Image Logo => Resources.logo;
+
+        public System.Drawing.Image SmallLogo => Resources.small;
+
+        public System.Drawing.Image Background => Resources.background;
+
+        public string Description => "Usage:<br>1. Install OLMOD (https://olmod.overloadmaps.com/)<br>2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu)."; // No title here, the name of the plugin is added automatically.
+
+        private Thread readThread;
+        private volatile bool running = false;
+        private IProfileManager controller;
+        private IMainFormDispatcher dispatcher;
+        private UdpClient udpClient;
+        private IPEndPoint endPoint;
+
+        private void ReadTelemetry()
         {
-          "Yaw",
-          "Pitch",
-          "Roll",          
-          "Sway",
-          "Surge",
-          "Heave"         
-        };
+            try
+            {
+                while (running)
+                {
+                    if (udpClient.Available > 0)
+                    {
+                        byte[] data = udpClient.Receive(ref endPoint);
+                        string telemetryData = Encoding.ASCII.GetString(data);
+                        ProcessTelemetry(telemetryData);
+                    }
+                    // Thread.Sleep(20); // Reduce CPU usage - NB: Overloads sends UDP packets much too fast !!!
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle or log exceptions
+                Console.WriteLine("Error reading telemetry data: " + ex.Message);
+            }
+        }
+        private void ProcessTelemetry(string telemetry)
+        {
+            try
+            {
+                string[] parts = telemetry.Split(';');
+                if (parts.Length >= 14) // Make sure all parts are present
+                {
+                    float roll = float.Parse(parts[0]);
+                    float pitch = float.Parse(parts[1]);
+                    float yaw = float.Parse(parts[2]);
+                    float VelocityX = float.Parse(parts[3]);
+                    float VelocityY = float.Parse(parts[4]);
+                    float VelocityZ = float.Parse(parts[5]);
+                    float gForceX = float.Parse(parts[6]);
+                    float gForceY = float.Parse(parts[7]);
+                    float gForceZ = float.Parse(parts[8]);
+
+                    // Set inputs based on parsed data
+                    controller.SetInput(0, yaw);
+                    controller.SetInput(1, pitch);
+                    controller.SetInput(2, roll);
+                    // Example: Assume inputs 3, 4, 5 are set for G-forces
+                    controller.SetInput(3, VelocityX);
+                    controller.SetInput(4, VelocityY);
+                    controller.SetInput(5, VelocityZ);
+                    controller.SetInput(6, gForceX);
+                    controller.SetInput(7, gForceY);
+                    controller.SetInput(8, gForceZ);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing telemetry data: {ex.Message}");
+            }
+        }
 
         public LedEffect DefaultLED()
         {
@@ -60,130 +113,52 @@ namespace YawVR_Game_Engine.Plugin
 
         public List<Profile_Component> DefaultProfile()
         {
-            return new List<Profile_Component>()
-            {
-                new Profile_Component(4, 1, 1f, 0.0f, 0.0f, false, false, -1f, 1f),
-                new Profile_Component(7, 1, 0.5f, 0.0f, 0.0f, false, true, -1f, 0.3f),
-                new Profile_Component(1, 2, 0.1f, 0.0f, 0.0f, false, false, -1f, 0.05f),
-                new Profile_Component(5, 2, 1f, 0.0f, 0.0f, false, true, -1f, 1f),
-                new Profile_Component(0, 1, 0.1f, 0.0f, 0.0f, false, false, -1f, 1f),
-                new Profile_Component(3, 0, 1f, 0.0f, 0.0f, false, true, -1f, 1f)
-            };
+            return new List<Profile_Component>();
         }
 
         public void Exit()
         {
-            this._running = false;
-            if (!_cts.IsCancellationRequested)
-            {
-                _cts.Cancel();
-            }
+            running = false;
+            readThread.Join();
+            udpClient.Close();
         }
-
         public Dictionary<string, ParameterInfo[]> GetFeatures()
         {
-            return null;
+            return new Dictionary<string, ParameterInfo[]>(); // Return empty if no features to report
         }
 
         public string[] GetInputData()
         {
-            return OverloadPlugin.inputs;
+            return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ" }; // Text of the inputs that appear in GE's dropdown
+
         }
 
-        public async void Init()
+        public void Init()
         {
-            this._running = true;
+            if (udpClient != null)
+                udpClient.Close();
 
-            SimulatorInterfaceClient simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.Overload);
-            simInterface.OnReceive += SimInterface_OnReceive;
+            if (readThread != null && readThread.IsAlive)
+                Exit();
 
-            _cts = new CancellationTokenSource();
+            endPoint = new IPEndPoint(IPAddress.Any, 4123); // Use the correct port for Overload
+            udpClient = new UdpClient(endPoint);
 
-            var task = simInterface.Start(_cts.Token);
-
-            try
-            {
-                await task;
-            }
-            catch (OperationCanceledException e)
-            {
-                Console.WriteLine($"Simulator Interface ending..");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Errored during simulation: {e.Message}");
-            }
-            finally
-            {
-                simInterface.Dispose();
-            }
-
+            running = true;
+            readThread = new Thread(ReadTelemetry);
+            readThread.Start();
         }
 
         public void PatchGame()
         {
-            
+            // Intentionally left blank - no patching required
         }
 
         public void SetReferences(IProfileManager controller, IMainFormDispatcher dispatcher)
         {
-            this._dispatcher = dispatcher;
-            this._profileManager = controller;
-        }
-
-        private void SimInterface_OnReceive(SimulatorPacket packet)
-        {
-            try
-            {
-                packet.PrintPacket(false);
-
-            } 
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error printing packet: {e.Message}");
-            }
-
-            SimulatorInterfaceGameType gameType = packet.GameType;
-
-            if (!packet.Flags.HasFlag(SimulatorFlags.Paused) && !packet.Flags.HasFlag(SimulatorFlags.LoadingOrProcessing))
-            {
-                ReadFunction(packet);
-            }
-
-            _seenPacket = _seenPacket || true;
-        }
-
-        private void ReadFunction(SimulatorPacket packet)
-        {
-            var Q = new System.Numerics.Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
-            var local_velocity = Maths.WorldtoLocal(Q, packet.Velocity);
-
-            var sway = CalculateCentrifugalAcceleration(local_velocity, packet.AngularVelocity);
-
-            var surge = 0f;
-
-            if (_seenPacket)
-            {
-                var delta_velocity = local_velocity - _previous_local_velocity;                
-
-                surge = delta_velocity.Z * 100;
-            }
-            
-            _previous_local_velocity = local_velocity;
-            
-            var (yaw, pitch, roll) = Maths.ToEuler(Q);
-
-            _profileManager.SetInput(0, yaw);
-            _profileManager.SetInput(1, pitch);
-            _profileManager.SetInput(2, roll);
-            _profileManager.SetInput(3, sway);
-            _profileManager.SetInput(4, surge);
-        }
-
-        public float CalculateCentrifugalAcceleration(Vector3 velocity, Vector3 angularVelocity)
-        {
-            var Fc = velocity.Magnitude() * angularVelocity.Magnitude();            
-            return Fc * (angularVelocity.Y >= 0 ? 1 : -1);
+            //we need to save these references
+            this.controller = controller;
+            this.dispatcher = dispatcher;
         }
     }
 }
