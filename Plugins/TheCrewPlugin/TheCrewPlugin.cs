@@ -11,7 +11,7 @@ using TheCrew.Properties;
 using YawGEAPI;
 
 
-namespace YawVRYawVR_Game_Engine.Plugin
+namespace YawVR_Game_Engine.Plugin
 {
   [Export(typeof (Game))]
   [ExportMetadata("Name", "The Crew")]

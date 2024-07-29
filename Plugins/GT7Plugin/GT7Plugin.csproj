@@ -7,7 +7,7 @@
     <ProjectGuid>{95D3D9BE-488A-4123-A781-452A96BDC8B2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>GT7Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -58,6 +58,11 @@
       <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
       <Name>PDTools.SimulatorInterface</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Vectors">
+      <Version>4.5.0</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)ge.targets" />
