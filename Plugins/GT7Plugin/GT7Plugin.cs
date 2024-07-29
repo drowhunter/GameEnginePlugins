@@ -18,7 +18,7 @@ namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
     [ExportMetadata("Name", "Gran Turismo 7")]
-    [ExportMetadata("Version", "1.0")]
+    [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
         private volatile bool _running = false;
