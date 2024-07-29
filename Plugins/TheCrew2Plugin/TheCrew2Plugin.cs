@@ -15,10 +15,10 @@ using System.Reflection;
 using System.Threading;
 using TheCrew2.Properties;
 using YawGEAPI;
-using Syroot.BinaryData.Memory;
+//using Syroot.BinaryData.Memory;
 
 
-namespace YawVRYawVR_Game_Engine.Plugin
+namespace YawVR_Game_Engine.Plugin
 {
   [Export(typeof (Game))]
   [ExportMetadata("Name", "The Crew 2")]
@@ -115,7 +115,12 @@ namespace YawVRYawVR_Game_Engine.Plugin
       this.readthread.Start();
     }
 
-    private void ReadFunction()
+    /*private float RadToDeg(float rad)
+    {
+        return (float)(rad * (180.0 / Math.PI));
+    }
+
+    private void NewReadFunction()
     {
       while (this.running)
       {
@@ -132,12 +137,50 @@ namespace YawVRYawVR_Game_Engine.Plugin
         }
 
       }
+    }*/
+
+    private const float RAD_TO_DEG = 57.295f;
+
+    private void ReadFunction()
+    {
+        while (running)
+        {
+            byte[] value = receivingUdpClient.Receive(ref RemoteIpEndPoint);
+            float num = BitConverter.ToSingle(value, 4);
+            float num2 = BitConverter.ToSingle(value, 8);
+            float num3 = BitConverter.ToSingle(value, 12);
+            float num4 = BitConverter.ToSingle(value, 16);
+            float num5 = BitConverter.ToSingle(value, 20);
+            float num6 = BitConverter.ToSingle(value, 24);
+            float value2 = BitConverter.ToSingle(value, 28);
+            float value3 = BitConverter.ToSingle(value, 32);
+            float value4 = BitConverter.ToSingle(value, 36);
+            float value5 = BitConverter.ToSingle(value, 40);
+            float value6 = BitConverter.ToSingle(value, 44);
+            float value7 = BitConverter.ToSingle(value, 48);
+            float value8 = BitConverter.ToSingle(value, 52);
+            float value9 = BitConverter.ToSingle(value, 56);
+            float value10 = BitConverter.ToSingle(value, 60);
+            float num7 = BitConverter.ToSingle(value, 64);
+            controller.SetInput(0, num  * RAD_TO_DEG);
+            controller.SetInput(1, num2 * RAD_TO_DEG);
+            controller.SetInput(2, num3 * RAD_TO_DEG);
+            controller.SetInput(3, num4 * RAD_TO_DEG);
+            controller.SetInput(4, num5 * RAD_TO_DEG);
+            controller.SetInput(5, num6 * RAD_TO_DEG);
+            controller.SetInput(6, value2);
+            controller.SetInput(7, value3);
+            controller.SetInput(8, value4);
+            controller.SetInput(9, value5);
+            controller.SetInput(10, value6);
+            controller.SetInput(11, value7);
+            controller.SetInput(12, value8);
+            controller.SetInput(13, value9);
+            controller.SetInput(14, value10);
+        }
     }
 
-    private float RadToDeg(float rad)
-    {
-      return (float) (rad * (180.0 / Math.PI));
-    }
+    
 
     public void PatchGame()
     {

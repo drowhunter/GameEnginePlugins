@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: TheCrew.Properties.Resources
-// Assembly: TheCrew, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 4722EE52-F477-46B0-8A58-A26AC0A5A193
-// Assembly location: G:\apps\GameEngine\Gameplugins\TheCrew2Plugin.dll
-
-using System.CodeDom.Compiler;
+﻿using System.CodeDom.Compiler;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
