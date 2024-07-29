@@ -1,5 +1,4 @@
-using OverloadTelemetryPlugin.Properties;
-using PDTools.SimulatorInterface;
+using OverloadPlugin.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;

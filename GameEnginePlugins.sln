@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedOutPlugin", "Plugins\Red
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GT7Plugin", "Plugins\GT7Plugin\GT7Plugin.csproj", "{95D3D9BE-488A-4123-A781-452A96BDC8B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverloadPlugin", "OverloadPlugin\OverloadPlugin.csproj", "{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PDTools", "PDTools", "{DAD948CE-CDF8-4EEF-A5DA-C26F29CD5383}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDTools.SimulatorInterface", "external\PDTools\PDTools.SimulatorInterface\PDTools.SimulatorInterface.csproj", "{90932698-9263-4457-B0DE-72A095E84F14}"
@@ -30,6 +28,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GT7PluginTest", "Tests\GT7PluginTest\GT7PluginTest.csproj", "{1EC80BC5-BF4F-4FA3-A47B-70EC2E2BE0C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACPlugin", "Plugins\ACPlugin\ACPlugin.csproj", "{34966394-2E0A-4771-BF4D-B46CA4C50AFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverloadPlugin", "Plugins\OverloadPlugin\OverloadPlugin.csproj", "{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +77,10 @@ Global
 		{34966394-2E0A-4771-BF4D-B46CA4C50AFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34966394-2E0A-4771-BF4D-B46CA4C50AFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34966394-2E0A-4771-BF4D-B46CA4C50AFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
