@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>YawVR_Game_Engine.Plugin</RootNamespace>
+    <RootNamespace>TheCrew2</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
