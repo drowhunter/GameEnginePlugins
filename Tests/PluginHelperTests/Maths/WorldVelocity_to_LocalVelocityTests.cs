@@ -1,12 +1,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using YawVR_Game_Engine.Plugin;
+
+using PluginHelper;
+
 using System;
-using Quaternion = System.Numerics.Quaternion;
 using System.Numerics;
-using System.Security.AccessControl;
+
+using Quaternion = System.Numerics.Quaternion;
 
 
-namespace GT7PluginTest
+namespace PluginHelperTests
 {
 
     [TestClass]

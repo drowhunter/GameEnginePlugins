@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GT7Plugin.cs" />
-    <Compile Include="Maths.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -58,10 +57,14 @@
       <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
       <Name>PDTools.SimulatorInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
+      <Project>{d862262b-97dc-451d-8b3e-19d4e40dfd48}</Project>
+      <Name>PluginHelper</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.5.0</Version>
+      <Version>4.3.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

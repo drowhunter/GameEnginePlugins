@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Numerics;
-using Quaternion = System.Numerics.Quaternion;
 
-namespace YawVR_Game_Engine.Plugin
+namespace PluginHelper
 {
-    internal static class Maths
+    public static class Maths
     {
         const double radtodeg = 180 / Math.PI;
 
-        const double degtorad = Math.PI/180 ;
+        const double degtorad = Math.PI / 180;
 
         /// <summary>
         /// Convert Radians to Degrees
@@ -30,22 +29,7 @@ namespace YawVR_Game_Engine.Plugin
             return deg * degtorad;
         }
 
-        public static YawGEAPI.Quaternion Conjugate(this YawGEAPI.Quaternion Q) => new YawGEAPI.Quaternion(-Q.x, -Q.y, -Q.z, Q.w);
-
-        public static YawGEAPI.Quaternion Normalize(this YawGEAPI.Quaternion q)
-        {
-
-            var q_norm = new YawGEAPI.Quaternion(q.x, q.y, q.z, q.w);
-
-            var norm = Math.Sqrt(q_norm.z * q_norm.z + q_norm.x * q_norm.x + q_norm.y * q_norm.y + q_norm.w * q_norm.w);
-            q_norm.w /= norm;
-            q_norm.z /= norm;
-            q_norm.x /= norm;
-            q_norm.y /= norm;
-
-            return q_norm;
-
-        }
+        
 
         public static Quaternion ToQuat(this Vector3 v, float degrees = 0f)
         {
@@ -54,11 +38,11 @@ namespace YawVR_Game_Engine.Plugin
 
         public static Quaternion VectorToQuaternion(float x = 0f, float y = 0f, float z = 0f, float degrees = 0f)
         {
-            Vector3 axis = new Vector3(x , y ,z);
+            Vector3 axis = new Vector3(x, y, z);
             var R = new Quaternion(
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.X, 
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Y, 
-                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Z, 
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.X,
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Y,
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.Z,
                 (float)Math.Cos(DegToRad(degrees / 2)));
 
             return R;
@@ -84,7 +68,7 @@ namespace YawVR_Game_Engine.Plugin
             var pitch_deg = RadToDeg(loc_pitch);
             var yaw_deg = RadToDeg(loc_yaw);
 
-            return ((float)yaw_deg,(float) - pitch_deg,(float) roll_deg);
+            return ((float)yaw_deg, (float)-pitch_deg, (float)roll_deg);
 
         }
 
@@ -95,7 +79,7 @@ namespace YawVR_Game_Engine.Plugin
         /// <param name="q">a normalized quaternion</param>
         /// <param name="v_world">a global vctor</param>
         /// <returns></returns>
-        public static Vector3 WorldtoLocal(Quaternion q, Vector3 v_world) 
+        public static Vector3 WorldtoLocal(Quaternion q, Vector3 v_world)
             => (Quaternion.Conjugate(q) * new Quaternion(v_world, 0) * q).Vector();
 
         /// <summary>
@@ -127,6 +111,12 @@ namespace YawVR_Game_Engine.Plugin
         public static double ToYaw(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Y), 1.0 - 2.0 * (q.X * q.X + q.Y * q.Y));
 
         public static double ToRoll(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Z), 1.0 - 2.0 * (q.X * q.X + q.Z * q.Z));
+    
+    
+        // Convert a vector of yaw pitch and roll to a quaternion
+        public static Quaternion YawPitchRollToQuaternion(Vector3 ypr)
+        {
+            return Quaternion.CreateFromYawPitchRoll(ypr.X, ypr.Y, ypr.Z);
+        }
     }
-
 }

@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="OverloadPlugin.cs" />
-    <Compile Include="Maths.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
