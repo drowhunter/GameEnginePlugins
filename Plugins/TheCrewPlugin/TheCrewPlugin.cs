@@ -1,9 +1,3 @@
-// Decompiled with JetBrains decompiler
-// Type: YawVRYawVR_Game_Engine.Plugin.TheCrewPlugin
-// Assembly: TheCrew, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 4722EE52-F477-46B0-8A58-A26AC0A5A193
-// Assembly location: G:\apps\GameEngine\Gameplugins\TheCrewPlugin.dll
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -17,7 +11,7 @@ using TheCrew.Properties;
 using YawGEAPI;
 
 
-namespace YawVRYawVR_Game_Engine.Plugin
+namespace YawVR_Game_Engine.Plugin
 {
   [Export(typeof (Game))]
   [ExportMetadata("Name", "The Crew")]

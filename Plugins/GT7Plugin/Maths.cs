@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Numerics;
-
-using YawGEAPI;
-
 using Quaternion = System.Numerics.Quaternion;
 
 namespace YawVR_Game_Engine.Plugin
@@ -59,7 +56,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             Vector3 axis = new Vector3(x , y ,z);
             var R = new Quaternion(
-                (float)Math.Sin(DegToRad(degrees/2)) * axis.X, 
+                (float)Math.Sin(DegToRad(degrees / 2)) * axis.X, 
                 (float)Math.Sin(DegToRad(degrees / 2)) * axis.Y, 
                 (float)Math.Sin(DegToRad(degrees / 2)) * axis.Z, 
                 (float)Math.Cos(DegToRad(degrees / 2)));
@@ -75,15 +72,12 @@ namespace YawVR_Game_Engine.Plugin
         public static (float yaw, float pitch, float roll) ToEuler(this Quaternion q)
         {
 
-            var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
+            //var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
+            var loc_roll = q.ToRoll();
 
+            var loc_pitch = q.ToPitch();
 
-            // Compute the roll, pitch, and yaw angles in radians
-            var loc_roll = q_norm.toRollFromYUp();
-
-            var loc_pitch = q_norm.toPitchFromYUp();
-
-            var loc_yaw = q_norm.toYawFromYUp();
+            var loc_yaw = q.ToYaw();
 
             // Convert the angles from radians to degrees
             var roll_deg = RadToDeg(loc_roll);
@@ -95,46 +89,14 @@ namespace YawVR_Game_Engine.Plugin
         }
 
 
-        public static Vector3 WorldVelocity_to_LocalVelocity(Quaternion q, Vector3 vw)
-        {
-            var qn = Quaternion.Normalize(q);
-
-            Quaternion q_conj = Quaternion.Conjugate(qn);
-
-
-            
-            // Convert quaternion to rotation matrix
-            var r = Matrix4x4.CreateFromQuaternion(q_conj);
-            
-            
-
-
-            var retval = Vector3.Transform( Vector3.Transform(vw, q), q_conj);
-
-            return retval;
-
-            //var R = r.as_matrix();
-            // Calculate local velocity vector
-            //v_local = np.dot(R, v_world)
-            //return v_local
-        }
-
-        
-
         /// <summary>
         /// Convert a world space vector to local space
         /// </summary>
         /// <param name="q">a normalized quaternion</param>
         /// <param name="v_world">a global vctor</param>
         /// <returns></returns>
-        public static Vector3 WorldtoLocal(Quaternion q, Vector3 v_world)
-        {
-            Quaternion q_conj = Quaternion.Conjugate(q);
-
-            Quaternion l_world = q_conj * new Quaternion(v_world, 0) * q;
-
-            return l_world.VectorPart();
-        }
+        public static Vector3 WorldtoLocal(Quaternion q, Vector3 v_world) 
+            => (Quaternion.Conjugate(q) * new Quaternion(v_world, 0) * q).Vector();
 
         /// <summary>
         /// Convert a world space vector to local space
@@ -143,45 +105,28 @@ namespace YawVR_Game_Engine.Plugin
         /// <param name="v_local">a global vctor</param>
         /// <returns></returns>
         public static Vector3 LocalToWorld(Quaternion q, Vector3 v_local)
-        {
-            Quaternion q_conj = Quaternion.Conjugate(q);
+            => (q * new Quaternion(v_local, 0) * Quaternion.Conjugate(q)).Vector();
 
-            Quaternion q_world = q * new Quaternion(v_local, 0) * q_conj;
 
-            return q_world.VectorPart();
-        }
 
         /// <summary>
         /// Return the vector part of a quaternion
         /// </summary>
         /// <param name="q"></param>
         /// <returns></returns>
-        public static Vector3 VectorPart(this Quaternion q)
+        public static Vector3 Vector(this Quaternion q) => new Vector3(q.X, q.Y, q.Z);
+
+        public static double ToPitch(this Quaternion q)
         {
-            return new Vector3(q.X, q.Y, q.Z);
+            double num = 2.0 * (q.X * q.Y + q.W * q.Y);
+            double num2 = 2.0 * (q.W * q.X - q.Y * q.Z);
+            double num3 = 1.0 - 2.0 * (q.X * q.X + q.Y * q.Y);
+            return Math.Atan2(num2, Math.Sqrt(num * num + num3 * num3));
         }
 
+        public static double ToYaw(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Y), 1.0 - 2.0 * (q.X * q.X + q.Y * q.Y));
 
-        public static Vector3 CrossProduct(this Vector3 a, Vector3 b)
-        {
-            return new Vector3(a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
-        }
-
-        public static Vector3 DotProduct(this Vector3 a, Vector3 b)
-        {
-            return new Vector3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
-        }
-
-        public static float Magnitude(this Vector3 a)
-        {
-            return (float) Math.Sqrt(a.X * a.X + a.Y * a.Y + a.Z * a.Z);
-        }
-
-        public static float SquaredMagnitude(this Vector3 a) 
-        {
-            return a.X * a.X + a.Y * a.Y + a.Z * a.Z;
-        }
-
+        public static double ToRoll(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Z), 1.0 - 2.0 * (q.X * q.X + q.Z * q.Z));
     }
 
 }

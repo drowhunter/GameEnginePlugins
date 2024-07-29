@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: GT7Plugin.Properties.Resources
-// Assembly: GT7Plugin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 9C05644C-29E2-4C25-BA06-FC759BF669E2
-// Assembly location: C:\src\yawge\Gameplugins\GT7Plugin.dll
-
-using System.CodeDom.Compiler;
+﻿using System.CodeDom.Compiler;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
