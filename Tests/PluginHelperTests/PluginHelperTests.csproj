@@ -7,8 +7,8 @@
     <ProjectGuid>{1EC80BC5-BF4F-4FA3-A47B-70EC2E2BE0C4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GT7PluginTest</RootNamespace>
-    <AssemblyName>GT7PluginTest</AssemblyName>
+    <RootNamespace>PluginHelperTests</RootNamespace>
+    <AssemblyName>PluginHelperTests</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -41,9 +41,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="YawGEAPI">
-      <HintPath>..\dlls\YawGEAPI.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Maths\RollPitchYawTests.cs" />
@@ -52,16 +49,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter">
-      <Version>2.2.10</Version>
+      <Version>3.5.0</Version>
     </PackageReference>
     <PackageReference Include="MSTest.TestFramework">
-      <Version>2.2.10</Version>
+      <Version>3.5.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Plugins\GT7Plugin\GT7Plugin.csproj">
-      <Project>{95d3d9be-488a-4123-a781-452a96bdc8b2}</Project>
-      <Name>GT7Plugin</Name>
+    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
+      <Project>{d862262b-97dc-451d-8b3e-19d4e40dfd48}</Project>
+      <Name>PluginHelper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

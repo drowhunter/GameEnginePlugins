@@ -1,10 +1,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using YawVR_Game_Engine.Plugin;
-using System;
-//using YawGEAPI;
+
+using PluginHelper;
+
 using Quaternion = System.Numerics.Quaternion;
 
-namespace GT7PluginTest
+namespace PluginHelperTests
 {
     [TestClass]
     public class RollPitchYawTests

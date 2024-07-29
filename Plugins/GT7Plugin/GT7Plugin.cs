@@ -11,7 +11,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using Quaternion = System.Numerics.Quaternion;
-
+using PluginHelper;
 using YawGEAPI;
 
 namespace YawVR_Game_Engine.Plugin
