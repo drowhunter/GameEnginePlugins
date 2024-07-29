@@ -14,51 +14,80 @@ namespace PluginHelperTests
         [TestMethod]
         public void TestIdentityQuaternion()
         {
+            // Arrange
             var identityQuat = new Quaternion(0, 0, 0, 1);
-            var (yaw, pitch, roll) = identityQuat.ToEuler();
-            Assert.AreEqual(0, roll, Tolerance);
+
+            // Act
+            var (pitch, yaw, roll) = Maths.ToEuler(identityQuat);
+
+            // Assert
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
+            Assert.AreEqual(0, roll, Tolerance);
         }
 
         [TestMethod]
         public void Test90DegreeRotationAroundX()
         {
+            // Arrange
             var quat = new Quaternion(0.7071f, 0, 0, 0.7071f); // 90 degrees around X
-            var (yaw, pitch, roll) = quat.ToEuler();
-            Assert.AreEqual(0, roll, Tolerance);
-            Assert.AreEqual(-90, pitch, Tolerance);
+
+            // Act
+            var (pitch, yaw, roll) = Maths.ToEuler(quat);
+
+            // Assert
+            Assert.AreEqual(90, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
+            Assert.AreEqual(0, roll, Tolerance);
+            
+            
         }
 
         [TestMethod]
         public void Test90DegreeRotationAroundY()
         {
+            // Arrange
             var quat = new Quaternion(0, 0.7071f, 0, 0.7071f); // 90 degrees around Y
-            var (yaw, pitch, roll) = quat.ToEuler();
-            Assert.AreEqual(0, roll, Tolerance);
+
+            // Act
+            var (pitch, yaw, roll) = Maths.ToEuler(quat);
+
+            // Assert
+            
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(90, yaw, Tolerance);
+            Assert.AreEqual(0, roll, Tolerance);
         }
 
         [TestMethod]
         public void Test90DegreeRotationAroundZ()
         {
+            // Arrange
             var quat = new Quaternion(0, 0, 0.7071f, 0.7071f); // 90 degrees around Z
-            var (yaw, pitch, roll) = quat.ToEuler();
-            Assert.AreEqual(90, roll, Tolerance);
+
+            // Act
+            var (pitch, yaw, roll) = Maths.ToEuler(quat);
+
+            // Assert
+           
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
+            Assert.AreEqual(90, roll, Tolerance);
         }
 
         [TestMethod]
         public void TestNormalizationEffect()
         {
+            // Arrange
             var quat = new Quaternion(0, 0, 0, 2); // Non-unit quaternion
-            var (yaw, pitch, roll) = quat.ToEuler();
-            Assert.AreEqual(0, roll, Tolerance);
+
+            // Act
+            var (pitch, yaw, roll) = Maths.ToEuler(quat);
+
+            // Assert
             Assert.AreEqual(0, pitch, Tolerance);
             Assert.AreEqual(0, yaw, Tolerance);
+            Assert.AreEqual(0, roll, Tolerance);
         }
     }
 }

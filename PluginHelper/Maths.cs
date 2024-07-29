@@ -29,7 +29,7 @@ namespace PluginHelper
             return deg * degtorad;
         }
 
-        
+
 
         public static Quaternion ToQuat(this Vector3 v, float degrees = 0f)
         {
@@ -52,8 +52,8 @@ namespace PluginHelper
         /// Convert quaternion to Euler angles
         /// </summary>
         /// <param name="q"></param>
-        /// <returns>(yaw, pitch, roll)</returns>
-        public static (float yaw, float pitch, float roll) ToEuler(this Quaternion q)
+        /// <returns>pitch(x-rotation), yaw (y-rotation) , roll (z-rotation)</returns>
+        public static (float pitch, float yaw, float roll) ToEuler(this Quaternion q)
         {
 
             //var q_norm = new YawGEAPI.Quaternion(q.X, q.Y, q.Z, q.W);
@@ -68,7 +68,7 @@ namespace PluginHelper
             var pitch_deg = RadToDeg(loc_pitch);
             var yaw_deg = RadToDeg(loc_yaw);
 
-            return ((float)yaw_deg, (float)-pitch_deg, (float)roll_deg);
+            return ((float) pitch_deg, (float)yaw_deg, (float)roll_deg);
 
         }
 
@@ -111,12 +111,26 @@ namespace PluginHelper
         public static double ToYaw(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Y), 1.0 - 2.0 * (q.X * q.X + q.Y * q.Y));
 
         public static double ToRoll(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Z), 1.0 - 2.0 * (q.X * q.X + q.Z * q.Z));
-    
-    
+
+
         // Convert a vector of yaw pitch and roll to a quaternion
         public static Quaternion YawPitchRollToQuaternion(Vector3 ypr)
         {
-            return Quaternion.CreateFromYawPitchRoll(ypr.X, ypr.Y, ypr.Z);
+            return Quaternion.CreateFromYawPitchRoll((float)DegToRad(ypr.X), (float)DegToRad(ypr.Y), (float)DegToRad(ypr.Z));
+        }
+
+        /// <summary>
+        /// Test if two floats are withing a tolerance of each other
+        /// </summary>
+        /// <param name="f"></param>
+        /// <param name="tolerance"></param>
+        /// <returns></returns>
+        public static bool IsEqualish(this float a, float b, float tolerance = 0.0001f)
+        {
+            
+            return Math.Abs(a - b) < tolerance;
         }
     }
 }
+
+
