@@ -1,6 +1,7 @@
 using OverloadPlugin.Properties;
-
 using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
@@ -22,6 +23,7 @@ namespace YawVR_Game_Engine.Plugin
 
     public class OverloadPlugin : Game
     {
+
         public int STEAM_ID => 0;// 448850; // Will start this game on steam based on Steam ID
 
         public string PROCESS_NAME => "olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
@@ -29,6 +31,7 @@ namespace YawVR_Game_Engine.Plugin
         public bool PATCH_AVAILABLE => false; // Needs patch
 
         public string AUTHOR => "PhunkaeG";
+
 
         public Image Logo => Resources.logo;
 
@@ -46,6 +49,7 @@ namespace YawVR_Game_Engine.Plugin
         private IPEndPoint endPoint;
 
         private void ReadTelemetry()
+
         {
             try
             {
@@ -83,6 +87,7 @@ namespace YawVR_Game_Engine.Plugin
                     float gForceY = float.Parse(parts[7]);
                     float gForceZ = float.Parse(parts[8]);
 
+
                     var v = new Vector3(yaw, pitch, roll);
                     var q = Quaternion.CreateFromYawPitchRoll(v.X, v.Y, v.Z);
                     var ypr = q.ToEuler();
@@ -90,10 +95,12 @@ namespace YawVR_Game_Engine.Plugin
                     var velocity = new Vector3(VelocityX, VelocityY, VelocityZ);
 
                     var local_velocity = Maths.WorldtoLocal(Quaternion.Normalize(q), velocity);
+
                     // Set inputs based on parsed data
                     controller.SetInput(0, yaw);
                     controller.SetInput(1, pitch);
                     controller.SetInput(2, roll);
+
                     
                     // Example: Assume inputs 3, 4, 5 are set for G-forces
                     
@@ -111,6 +118,7 @@ namespace YawVR_Game_Engine.Plugin
                     controller.SetInput(9, local_velocity.X);
                     controller.SetInput(10, local_velocity.Y);
                     controller.SetInput(11, local_velocity.Z);
+
                 }
             }
             catch (Exception ex)
@@ -149,7 +157,6 @@ namespace YawVR_Game_Engine.Plugin
         public string[] GetInputData()
         {
             return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ", "LocalVelocityX", "LocalVelocityY", "LocalVelocityZ" }; // Text of the inputs that appear in GE's dropdown
-
         }
 
         public void Init()
