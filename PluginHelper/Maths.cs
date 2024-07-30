@@ -110,13 +110,29 @@ namespace PluginHelper
             => (q * new Quaternion(v_local, 0) * Quaternion.Conjugate(q)).Vector();
 
 
+       public static Vector3 rotate_vector_by_quaternion(   Quaternion q, Vector3 v)
+{
+    // Extract the vector part of the quaternion
+    var u = new Vector3 (q.X, q.Y, q.Z);
 
-        /// <summary>
-        /// Return the vector part of a quaternion
-        /// </summary>
-        /// <param name="q"></param>
-        /// <returns></returns>
-        public static Vector3 Vector(this Quaternion q) => new Vector3(q.X, q.Y, q.Z);
+        // Extract the scalar part of the quaternion
+        float s = q.W;
+
+        // Do the math
+        var vprime = 2.0f * Vector3.Dot(u, v) * u
+          + (s* s - Vector3.Dot(u, u)) * v
+          + 2.0f * s* Vector3.Cross(u, v);
+
+            return vprime;
+    }
+
+
+    /// <summary>
+    /// Return the vector part of a quaternion
+    /// </summary>
+    /// <param name="q"></param>
+    /// <returns></returns>
+    public static Vector3 Vector(this Quaternion q) => new Vector3(q.X, q.Y, q.Z);
 
         public static double ToPitch(this Quaternion q)
         {
