@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>YawVR_Game_Engine.Plugin</RootNamespace>
+    <RootNamespace>RedOutPlugin</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -1,18 +1,21 @@
-using OverloadPluginV2.Properties;
+using OverloadPlugin.Properties;
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
+using System.Drawing;
+using System.Net;
+using System.Net.Sockets;
+using System.Numerics;
 using System.Reflection;
-using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Quaternion = System.Numerics.Quaternion;
 using YawGEAPI;
-using System.Resources;
-namespace OverloadPlugin
+using PluginHelper;
+
+namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
     [ExportMetadata("Name", "Overload")] // Name that will appear in the plugin list.
@@ -20,7 +23,8 @@ namespace OverloadPlugin
 
     public class OverloadPlugin : Game
     {
-        public int STEAM_ID => 448850; // Will start this game on steam based on Steam ID
+
+        public int STEAM_ID => 0;// 448850; // Will start this game on steam based on Steam ID
 
         public string PROCESS_NAME => "olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
 
@@ -28,11 +32,12 @@ namespace OverloadPlugin
 
         public string AUTHOR => "PhunkaeG";
 
-        public System.Drawing.Image Logo => Resources.logo;
 
-        public System.Drawing.Image SmallLogo => Resources.small;
+        public Image Logo => Resources.logo;
 
-        public System.Drawing.Image Background => Resources.background;
+        public Image SmallLogo => Resources.small;
+
+        public Image Background => Resources.background;
 
         public string Description => "Usage:<br>1. Install OLMOD (https://olmod.overloadmaps.com/)<br>2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu)."; // No title here, the name of the plugin is added automatically.
 
@@ -44,6 +49,7 @@ namespace OverloadPlugin
         private IPEndPoint endPoint;
 
         private void ReadTelemetry()
+
         {
             try
             {
@@ -81,17 +87,38 @@ namespace OverloadPlugin
                     float gForceY = float.Parse(parts[7]);
                     float gForceZ = float.Parse(parts[8]);
 
+
+                    var v = new Vector3(yaw, pitch, roll);
+                    var q = Quaternion.CreateFromYawPitchRoll(v.X, v.Y, v.Z);
+                    var ypr = q.ToEuler();
+
+                    var velocity = new Vector3(VelocityX, VelocityY, VelocityZ);
+
+                    var local_velocity = Maths.WorldtoLocal(Quaternion.Normalize(q), velocity);
+
                     // Set inputs based on parsed data
                     controller.SetInput(0, yaw);
                     controller.SetInput(1, pitch);
                     controller.SetInput(2, roll);
+
+                    
                     // Example: Assume inputs 3, 4, 5 are set for G-forces
-                    controller.SetInput(3, VelocityX);
+                    
+                    controller.SetInput(3, VelocityX);                    
                     controller.SetInput(4, VelocityY);
                     controller.SetInput(5, VelocityZ);
+
+                    
+
                     controller.SetInput(6, gForceX);
                     controller.SetInput(7, gForceY);
                     controller.SetInput(8, gForceZ);
+
+
+                    controller.SetInput(9, local_velocity.X);
+                    controller.SetInput(10, local_velocity.Y);
+                    controller.SetInput(11, local_velocity.Z);
+
                 }
             }
             catch (Exception ex)
@@ -129,8 +156,7 @@ namespace OverloadPlugin
 
         public string[] GetInputData()
         {
-            return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ" }; // Text of the inputs that appear in GE's dropdown
-
+            return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ", "LocalVelocityX", "LocalVelocityY", "LocalVelocityZ" }; // Text of the inputs that appear in GE's dropdown
         }
 
         public void Init()
@@ -151,7 +177,8 @@ namespace OverloadPlugin
 
         public void PatchGame()
         {
-            // Intentionally left blank - no patching required
+            // should add code to download the olmod and extract it to the game folder
+            // just like TheCrew2 plugin does
         }
 
         public void SetReferences(IProfileManager controller, IMainFormDispatcher dispatcher)

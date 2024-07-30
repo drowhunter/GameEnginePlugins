@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Project was exported from assembly: C:\src\yawge\Gameplugins\GT7Plugin.dll-->
   <PropertyGroup>
@@ -7,7 +7,7 @@
     <ProjectGuid>{A3CC01F7-9AA4-4E93-8F79-5A7B10E98ABE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>OverloadPlugin</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -35,21 +35,20 @@
     <RootNamespace>OverloadPlugin</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PDTools.Crypto">
-      <HintPath>..\..\dlls\PDTools.Crypto.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Numerics.Vectors.4.3.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
     <Reference Include="YawGEAPI">
       <HintPath>..\..\dlls\YawGEAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="OverloadPlugin.cs" />
-    <Compile Include="Maths.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -57,36 +56,14 @@
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.5.0</Version>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\external\PDTools\PDTools.SimulatorInterface\PDTools.SimulatorInterface.csproj">
-      <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
-      <Name>PDTools.SimulatorInterface</Name>
+    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
+      <Project>{11a109de-bd09-43a5-8401-88940f548aac}</Project>
+      <Name>PluginHelper</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-  </PropertyGroup>
-  <Target Name="PostBuildMacros">
-    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
-      <Output TaskParameter="Assemblies" ItemName="Targets" />
-    </GetAssemblyIdentity>
-    <ItemGroup>
-      <VersionNumber Include="@(Targets->'%(Version)')" />
-    </ItemGroup>
-  </Target>
-  <PropertyGroup>
-    <PostBuildEventDependsOn>
-    $(PostBuildEventDependsOn);
-    PostBuildMacros;
-  </PostBuildEventDependsOn>
-    <PostBuildEvent>powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName)_@(VersionNumber).zip -Force"
-REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins" @(VersionNumber)</PostBuildEvent>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)ge.targets" />
 </Project>

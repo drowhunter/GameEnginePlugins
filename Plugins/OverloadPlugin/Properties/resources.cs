@@ -7,7 +7,7 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 
 
-namespace Overload.Properties
+namespace OverloadPlugin.Properties
 {
   [GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
   [DebuggerNonUserCode]

@@ -10,14 +10,15 @@ using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
-
+using Quaternion = System.Numerics.Quaternion;
+using PluginHelper;
 using YawGEAPI;
 
 namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
     [ExportMetadata("Name", "Gran Turismo 7")]
-    [ExportMetadata("Version", "1.0")]
+    [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
         private volatile bool _running = false;
@@ -179,7 +180,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             // Calculate local velocity based on quaternion (Q is assumed to be normalized)
 
-            var Q = new System.Numerics.Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
+            var Q = new Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
             var local_velocity = Maths.WorldtoLocal(Q, packet.Velocity);
 
             var sway = CalculateCentrifugalAcceleration(local_velocity, packet.AngularVelocity);
@@ -198,11 +199,11 @@ namespace YawVR_Game_Engine.Plugin
             _previous_local_velocity = local_velocity;
 
             
-            var (yaw, pitch, roll) = Maths.ToEuler(Q);
+            var (pitch, yaw,  roll) = Maths.ToEuler(Q, true);
 
 
             _profileManager.SetInput(0, yaw);
-            _profileManager.SetInput(1, pitch);
+            _profileManager.SetInput(1, -pitch);
             _profileManager.SetInput(2, roll);
             _profileManager.SetInput(3, sway);
             _profileManager.SetInput(4, surge);
@@ -212,7 +213,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public float CalculateCentrifugalAcceleration(Vector3 velocity, Vector3 angularVelocity)
         {
-            var Fc = velocity.Magnitude() * angularVelocity.Magnitude();            
+            var Fc = velocity.Length() * angularVelocity.Length();            
 
             return Fc * (angularVelocity.Y >= 0 ? 1 : -1);
             
