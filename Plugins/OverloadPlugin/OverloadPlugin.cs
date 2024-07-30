@@ -22,7 +22,7 @@ namespace YawVR_Game_Engine.Plugin
 
     public class OverloadPlugin : Game
     {
-        public int STEAM_ID => 448850; // Will start this game on steam based on Steam ID
+        public int STEAM_ID => 0;// 448850; // Will start this game on steam based on Steam ID
 
         public string PROCESS_NAME => "olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
 
@@ -94,18 +94,23 @@ namespace YawVR_Game_Engine.Plugin
                     controller.SetInput(0, yaw);
                     controller.SetInput(1, pitch);
                     controller.SetInput(2, roll);
+                    
                     // Example: Assume inputs 3, 4, 5 are set for G-forces
-                    //controller.SetInput(3, VelocityX);
-                    //controller.SetInput(4, VelocityY);
-                    //controller.SetInput(5, VelocityZ);
+                    
+                    controller.SetInput(3, VelocityX);                    
+                    controller.SetInput(4, VelocityY);
+                    controller.SetInput(5, VelocityZ);
 
-                    controller.SetInput(3, local_velocity.X);
-                    controller.SetInput(4, local_velocity.Y);
-                    controller.SetInput(5, local_velocity.Z);
+                    
 
                     controller.SetInput(6, gForceX);
                     controller.SetInput(7, gForceY);
                     controller.SetInput(8, gForceZ);
+
+
+                    controller.SetInput(9, local_velocity.X);
+                    controller.SetInput(10, local_velocity.Y);
+                    controller.SetInput(11, local_velocity.Z);
                 }
             }
             catch (Exception ex)
@@ -143,7 +148,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public string[] GetInputData()
         {
-            return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ" }; // Text of the inputs that appear in GE's dropdown
+            return new string[] { "Yaw", "Pitch", "Roll", "VelocityX", "VelocityY", "VelocityZ", "gForceX", "gForceY", "gForceZ", "LocalVelocityX", "LocalVelocityY", "LocalVelocityZ" }; // Text of the inputs that appear in GE's dropdown
 
         }
 
@@ -165,7 +170,8 @@ namespace YawVR_Game_Engine.Plugin
 
         public void PatchGame()
         {
-            // Intentionally left blank - no patching required
+            // should add code to download the olmod and extract it to the game folder
+            // just like TheCrew2 plugin does
         }
 
         public void SetReferences(IProfileManager controller, IMainFormDispatcher dispatcher)
