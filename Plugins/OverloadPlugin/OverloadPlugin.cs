@@ -105,9 +105,7 @@ namespace YawVR_Game_Engine.Plugin
                         yaw, pitch, roll,
                         AngularVelocityX, AngularVelocityY, AngularVelocityZ,
                         gForceX, gForceY, gForceZ,
-                        0, 0, 0, 0, 0,
-                        local_gforce.X, local_gforce.Y, local_gforce.Z,
-                        local_av.X, local_av.Y, local_av.Z
+                        0, 0, 0, 0, 0
                     };
 
                     for (int i = 0; i < datapoints.Count; i++)
@@ -152,16 +150,18 @@ namespace YawVR_Game_Engine.Plugin
             return new Dictionary<string, ParameterInfo[]>(); // Return empty if no features to report
         }
 
+        /// <summary>
+        /// Text of the inputs that appear in GE's dropdown
+        /// </summary>
+        /// <returns></returns>
         public string[] GetInputData()
         {
             return new string[] { 
                 "Yaw", "Pitch", "Roll", 
                 "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", 
                 "gForceX", "gForceY", "gForceZ",
-                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken",
-                "LocalGX", "LocalGY", "LocalGZ",
-                "LocalAVX", "LocalAVY", "LocalAVZ"
-            }; // Text of the inputs that appear in GE's dropdown
+                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken"
+            }; 
 
         }
 
