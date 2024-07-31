@@ -83,36 +83,40 @@ namespace YawVR_Game_Engine.Plugin
                     float gForceY = float.Parse(parts[7]);
                     float gForceZ = float.Parse(parts[8]);
 
-                    var v = new Vector3(yaw, pitch, roll);
-                    var q = Quaternion.CreateFromYawPitchRoll(v.X, v.Y, v.Z);
-                    var ypr = q.ToEuler();
+                    
+
+
+                    var qrot = Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+                    ///var ypr = qrot.ToEuler();
 
                     var gforce = new Vector3(gForceX, gForceY, gForceZ);
+                    var angV = Maths.EulerToDirection(AngularVelocityX, AngularVelocityY, AngularVelocityZ, false);
+
+                    var local_av = Maths.rotate_vector_by_quaternion(Quaternion.Conjugate(qrot), angV);
+
                     //var qn = Quaternion.Normalize(q);
                     //var local_gforce = (Quaternion.Conjugate(qn) * new Quaternion(gforce, 0)).Vector();
-                    var local_gforce = Maths.rotate_vector_by_quaternion(Quaternion.Conjugate(q), gforce);
-                   // var local_gforce = Maths.WorldtoLocal(qn, gforce);
-                    // Set inputs based on parsed data
-                    controller.SetInput(0, yaw);
-                    controller.SetInput(1, pitch);
-                    controller.SetInput(2, roll);
-                    
-                    // Example: Assume inputs 3, 4, 5 are set for G-forces
-                    
-                    controller.SetInput(3, AngularVelocityX);                    
-                    controller.SetInput(4, AngularVelocityY);
-                    controller.SetInput(5, AngularVelocityZ);
+                    var local_gforce = Maths.rotate_vector_by_quaternion(Quaternion.Conjugate(qrot), gforce);
 
                     
 
-                    controller.SetInput(6, gForceX);
-                    controller.SetInput(7, gForceY);
-                    controller.SetInput(8, gForceZ);
+                    var datapoints = new List<float>()
+                    {
+                        yaw, pitch, roll,
+                        AngularVelocityX, AngularVelocityY, AngularVelocityZ,
+                        gForceX, gForceY, gForceZ,
+                        0, 0, 0, 0, 0,
+                        local_gforce.X, local_gforce.Y, local_gforce.Z,
+                        local_av.X, local_av.Y, local_av.Z
+                    };
 
+                    for (int i = 0; i < datapoints.Count; i++)
+                    {
+                        float dp = datapoints[i];
+                        controller.SetInput(i, dp);
+                    }                   
+                   
 
-                    controller.SetInput(9,  local_gforce.X);
-                    controller.SetInput(10, local_gforce.Y);
-                    controller.SetInput(11, local_gforce.Z);
                 }
             }
             catch (Exception ex)
@@ -150,7 +154,14 @@ namespace YawVR_Game_Engine.Plugin
 
         public string[] GetInputData()
         {
-            return new string[] { "Yaw", "Pitch", "Roll", "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", "gForceX", "gForceY", "gForceZ", "LocalGX", "LocalGY", "LocalGZ" }; // Text of the inputs that appear in GE's dropdown
+            return new string[] { 
+                "Yaw", "Pitch", "Roll", 
+                "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", 
+                "gForceX", "gForceY", "gForceZ",
+                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken",
+                "LocalGX", "LocalGY", "LocalGZ",
+                "LocalAVX", "LocalAVY", "LocalAVZ"
+            }; // Text of the inputs that appear in GE's dropdown
 
         }
 

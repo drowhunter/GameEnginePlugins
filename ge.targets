@@ -1,6 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <OutputDir>$(SolutionDir)output\</OutputDir>
+        
     </PropertyGroup>
     <Target Name="PostBuildMacros" BeforeTargets="ILRepack">
         <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
@@ -10,6 +11,7 @@
             <VersionNumber Include="@(Targets->'%(Version)')" />
         </ItemGroup>
     </Target>
+    
     <Target Name="CleanOutput" BeforeTargets="PreBuildEvent" AfterTargets="ILRepack">
         <ItemGroup>
             <FilesToDelete Include="$(OutputDir)$(TargetName)" />
@@ -44,6 +46,14 @@
         <Message Text="[$(ProjectName)]-[MoveSingleFile] Moving single file to $(SolutionDir)output\$(TargetName).dll" Importance="High"/>
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)output\" />
         <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
-    </Target>       
-   
+    </Target>
+	<!--<Target Name="CopyToGE" DependsOnTargets="ILRepack;MoveSingleFile" >
+		<Message Text="[$(ProjectName)] Copy To GameEngine Folder" Importance="high" />
+		<ItemGroup>
+			<GameEngineDir Include="E:\_Apps\GameEngine_2_6\Gameplugins\"/>
+		</ItemGroup>
+		
+		<Copy SourceFiles="$(SolutionDir)output\$(TargetName).dll" DestinationFolder="E:\_Apps\GameEngine_2_6\Gameplugins\"  />
+		<Error Text="Copy To GE Failed" Condition="!Exists('E:\_Apps\GameEngine_2_6\Gameplugins\')" />
+	</Target>-->
 </Project>
