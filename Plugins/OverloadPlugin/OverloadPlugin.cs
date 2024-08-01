@@ -13,6 +13,7 @@ using System.Threading;
 using Quaternion = System.Numerics.Quaternion;
 using YawGEAPI;
 using PluginHelper;
+using System.Linq;
 
 namespace YawVR_Game_Engine.Plugin
 {
@@ -71,50 +72,16 @@ namespace YawVR_Game_Engine.Plugin
             try
             {
                 string[] parts = telemetry.Split(';');
-                if (parts.Length >= 14) // Make sure all parts are present
+                int expectedLength = GetInputData().Length;
+
+                if (parts.Length >= expectedLength) // Make sure all parts are present
                 {
-                    float roll = float.Parse(parts[0]);
-                    float pitch = float.Parse(parts[1]);
-                    float yaw = float.Parse(parts[2]);
-                    float AngularVelocityZ = float.Parse(parts[3]);
-                    float AngularVelocityX = float.Parse(parts[4]);
-                    float AngularVelocityY = float.Parse(parts[5]);
-                    float gForceX = float.Parse(parts[6]);
-                    float gForceY = float.Parse(parts[7]);
-                    float gForceZ = float.Parse(parts[8]);
-
-                    
-
-
-                    var qrot = Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
-                    ///var ypr = qrot.ToEuler();
-
-                    var gforce = new Vector3(gForceX, gForceY, gForceZ);
-                    var angV = Maths.EulerToDirection(AngularVelocityX, AngularVelocityY, AngularVelocityZ, false);
-
-                    var local_av = Maths.rotate_vector_by_quaternion(Quaternion.Conjugate(qrot), angV);
-
-                    //var qn = Quaternion.Normalize(q);
-                    //var local_gforce = (Quaternion.Conjugate(qn) * new Quaternion(gforce, 0)).Vector();
-                    var local_gforce = Maths.rotate_vector_by_quaternion(Quaternion.Conjugate(qrot), gforce);
-
-                    
-
-                    var datapoints = new List<float>()
+                    //var data = parts.Select(p => float.Parse(p)).ToArray();
+                    for (int i = 0; i < expectedLength; i++)
                     {
-                        yaw, pitch, roll,
-                        AngularVelocityX, AngularVelocityY, AngularVelocityZ,
-                        gForceX, gForceY, gForceZ,
-                        0, 0, 0, 0, 0
-                    };
-
-                    for (int i = 0; i < datapoints.Count; i++)
-                    {
-                        float dp = datapoints[i];
+                        float dp = float.Parse(parts[i]);
                         controller.SetInput(i, dp);
-                    }                   
-                   
-
+                    }
                 }
             }
             catch (Exception ex)
@@ -157,10 +124,12 @@ namespace YawVR_Game_Engine.Plugin
         public string[] GetInputData()
         {
             return new string[] { 
-                "Yaw", "Pitch", "Roll", 
-                "AngularVelocityX", "AngularVelocityY", "AngularVelocityZ", 
+                "Yaw", "Pitch", "Roll",
+                "AngularVelocityZ","AngularVelocityX", "AngularVelocityY",  
                 "gForceX", "gForceY", "gForceZ",
-                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken"
+                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken",
+                "LocalAngularVelocityX", "LocalAngularVelocityY", "LocalAngularVelocityZ",
+                "Sway", "Heave", "Surge"
             }; 
 
         }

@@ -1,15 +1,19 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <OutputDir>$(SolutionDir)output\</OutputDir>
-        
+        <OutputDir>$(SolutionDir)output\</OutputDir> 
+        <OutFileSuffix>_debug</OutFileSuffix>
     </PropertyGroup>
+     
+    
     <Target Name="PostBuildMacros" BeforeTargets="ILRepack">
+         <Message Text="[$(ProjectName)]-[PostBuildMacros] configuration: $(Configuration)" Importance="High"/>
         <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
             <Output TaskParameter="Assemblies" ItemName="Targets" />
         </GetAssemblyIdentity>       
         <ItemGroup>
             <VersionNumber Include="@(Targets->'%(Version)')" />
         </ItemGroup>
+       
     </Target>
     
     <Target Name="CleanOutput" BeforeTargets="PreBuildEvent" AfterTargets="ILRepack">
@@ -30,30 +34,29 @@
         </Copy>
         <Message Text="[$(ProjectName)]-[CopyToOutput] Copied @(CopiedFiles->Count()) files" Importance="High" />
     </Target>
+    
     <Target Name="ILRepack" AfterTargets="CopyToOutput" Condition="'@(CopiedFiles->Count())' &gt; 1" >
-        <Message Text="[$(ProjectName)] @(CopiedFiles->Count()) DLLs found, repacking to $(OutputDir)$(TargetName)\" Importance="High"/>
+        
         <ItemGroup>
-            <Main Include="$(OutputDir)$(TargetName)\$(TargetFileName)" />
+            <Main Include="$(OutputDir)$(TargetName)\$(TargetFileName)" />            
+        </ItemGroup>
+        <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+            <MergedFileName Include="$(OutputDir)$(TargetName)_debug.dll" />
+        </ItemGroup>
+        <ItemGroup Condition="'$(Configuration)' == 'Release'">
+            <MergedFileName Include="$(OutputDir)$(TargetName).dll" />
         </ItemGroup>
         <ItemGroup>
             <Others Include="$(OutputDir)$(TargetName)\*.dll" Exclude="@(Main)" />
         </ItemGroup>
-        <Message Text="[$(ProjectName)]-[ILRepack] $(OutputDir) Main: @(Main) Others: @(Others, ', ')" Importance="High"/>
-        <Exec Command="ILRepack /out:$(SolutionDir)output\$(TargetFileName) @(Main) @(Others, ' ')" />
-        <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
+        <Message Text="[$(ProjectName)]-[ILRepack] out:@(MergedFileName) Main: @(Main) Others: @(Others, ', ')" Importance="High"/>
+        <Exec Command="ILRepack /out:@(MergedFileName) @(Main) @(Others, ' ')" />
+        <RemoveDir Directories="$(OutputDir)$(TargetName)" />
     </Target>
     <Target Name="MoveSingleFile" AfterTargets="CopyToOutput" Condition="'@(CopiedFiles->Count())' == 1">
-        <Message Text="[$(ProjectName)]-[MoveSingleFile] Moving single file to $(SolutionDir)output\$(TargetName).dll" Importance="High"/>
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)output\" />
+        <Message Text="[$(ProjectName)]-[MoveSingleFile] Moving single file to $(OutputDir)$(TargetName)$(OutFileSuffix).dll" Importance="High"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFile="$(OutputDir)$(TargetName)$(OutFileSuffix).dll" />
         <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
     </Target>
-	<!--<Target Name="CopyToGE" DependsOnTargets="ILRepack;MoveSingleFile" >
-		<Message Text="[$(ProjectName)] Copy To GameEngine Folder" Importance="high" />
-		<ItemGroup>
-			<GameEngineDir Include="E:\_Apps\GameEngine_2_6\Gameplugins\"/>
-		</ItemGroup>
-		
-		<Copy SourceFiles="$(SolutionDir)output\$(TargetName).dll" DestinationFolder="E:\_Apps\GameEngine_2_6\Gameplugins\"  />
-		<Error Text="Copy To GE Failed" Condition="!Exists('E:\_Apps\GameEngine_2_6\Gameplugins\')" />
-	</Target>-->
+	
 </Project>
