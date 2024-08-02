@@ -20,7 +20,7 @@ namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
     [ExportMetadata("Name", "Overload")] // Name that will appear in the plugin list.
-    [ExportMetadata("Version", "1.0")]
+    [ExportMetadata("Version", "1.1")]
 
     public class OverloadPlugin : Game
     {
@@ -38,7 +38,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-        public string Description => @"<font color=""green"">
+        public string Description => @"<font color=""green"">v1.1.1
     &quot;Usage:<br>
     1. Install OLMOD (https://olmod.overloadmaps.com/)<br>
     2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>
