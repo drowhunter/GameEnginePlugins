@@ -14,6 +14,7 @@ using Quaternion = System.Numerics.Quaternion;
 using YawGEAPI;
 using PluginHelper;
 using System.Linq;
+using System.IO;
 
 namespace YawVR_Game_Engine.Plugin
 {
@@ -25,11 +26,11 @@ namespace YawVR_Game_Engine.Plugin
     {
         public int STEAM_ID => 0;// 448850; // Will start this game on steam based on Steam ID
 
-        public string PROCESS_NAME => "olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
+        public string PROCESS_NAME => string.Empty; //"olmod"; // Put here the exe name (without .exe) monitored by GE to maintain the plugin active.
 
         public bool PATCH_AVAILABLE => false; // Needs patch
 
-        public string AUTHOR => "PhunkaeG";
+        public string AUTHOR => "PhunkaeG,Drowhunter";
 
         public Image Logo => Resources.logo;
 
@@ -37,7 +38,13 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-        public string Description => "Usage:<br>1. Install OLMOD (https://olmod.overloadmaps.com/)<br>2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu)."; // No title here, the name of the plugin is added automatically.
+        public string Description => @"<font color=""green"">
+    &quot;Usage:<br>
+    1. Install OLMOD (https://olmod.overloadmaps.com/)<br>
+    2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>
+    3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu).&quot;;
+</font>";
+
 
         private Thread readThread;
         private volatile bool running = false;
@@ -45,6 +52,21 @@ namespace YawVR_Game_Engine.Plugin
         private IMainFormDispatcher dispatcher;
         private UdpClient udpClient;
         private IPEndPoint endPoint;
+
+        private static readonly string[] inputs = new string[]
+        {
+            "pitch","yaw", "roll",
+            "sway", "heave", "surge",
+            "pitch_speed","yaw_speed", "roll_speed",
+            "g_sway", "g_heave", "g_surge",
+            "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken"
+        };
+
+        /// <summary>
+        /// Text of the inputs that appear in GE's dropdown
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetInputData() => inputs;
 
         private void ReadTelemetry()
         {
@@ -67,21 +89,96 @@ namespace YawVR_Game_Engine.Plugin
                 Console.WriteLine("Error reading telemetry data: " + ex.Message);
             }
         }
+
+        private class PlayerData
+        {
+            /// <summary>
+            /// pitch (x), yaw (y), roll (z)
+            /// </summary>
+            public Vector3 Rotation = Vector3.Zero;
+
+            /// <summary>
+            /// pitch (x), yaw (y), roll (z)
+            /// </summary>
+            public Vector3 AngularVelocity = Vector3.Zero;
+
+            /// <summary>
+            /// sway (x), heave (y), surge (z)
+            /// </summary>
+            public Vector3 GForce = Vector3.Zero;
+
+            /// <summary>
+            /// pitch (x), yaw (y), roll (z)
+            /// </summary>
+            public Vector3 LocalAngularVelocity = Vector3.Zero;
+
+            /// <summary>
+            /// sway (x), heave (y), surge (z)
+            /// </summary>
+            public Vector3 LocalVelocity = Vector3.Zero;
+
+            /// <summary>
+            /// sway (x), heave (y), surge (z)
+            /// </summary>
+            public Vector3 LocalGForce = Vector3.Zero;
+
+            public float EventBoosting;
+            public float EventPrimaryFire;
+            public float EventSecondaryFire;
+            public float EventItemPickup;
+            public float EventDamageTaken;
+
+            public static PlayerData Parse(string packetString)
+            {
+                var playerData = new PlayerData();
+                float[] parts = packetString.Split(';').Select(s => float.Parse(s)).ToArray();
+                int expectedLength = 23;
+
+                playerData.Rotation = new Vector3(parts[1], parts[2], parts[0]);
+                playerData.AngularVelocity = new Vector3(parts[5], parts[4], parts[3]);
+                playerData.GForce = new Vector3(parts[6], parts[7], parts[8]);
+                playerData.EventBoosting = parts[9];
+                playerData.EventPrimaryFire = parts[10];
+                playerData.EventSecondaryFire = parts[11];
+                playerData.EventItemPickup = parts[12];
+                playerData.EventDamageTaken = parts[13];
+                playerData.LocalGForce = new Vector3(parts[14], parts[15], parts[16]);
+                playerData.LocalAngularVelocity = new Vector3(parts[17], parts[18], parts[19]);
+                playerData.LocalVelocity = new Vector3(parts[20], parts[21], parts[22]);
+
+                return playerData;
+            }
+        };
+
         private void ProcessTelemetry(string telemetry)
         {
+            PlayerData pd = null;
             try
             {
-                string[] parts = telemetry.Split(';');
-                int expectedLength = GetInputData().Length;
+                pd = PlayerData.Parse(telemetry);
+                if(pd != null) { 
 
-                if (parts.Length >= expectedLength) // Make sure all parts are present
-                {
-                    //var data = parts.Select(p => float.Parse(p)).ToArray();
-                    for (int i = 0; i < expectedLength; i++)
-                    {
-                        float dp = float.Parse(parts[i]);
-                        controller.SetInput(i, dp);
-                    }
+                    controller.SetInput(0, pd.Rotation.X);
+                    controller.SetInput(1, pd.Rotation.Y);
+                    controller.SetInput(2, pd.Rotation.Z);
+
+                    controller.SetInput(3, pd.LocalVelocity.X);
+                    controller.SetInput(4, pd.LocalVelocity.Y);
+                    controller.SetInput(5, pd.LocalVelocity.Z);
+
+                    controller.SetInput(6, pd.LocalAngularVelocity.X);
+                    controller.SetInput(7, pd.LocalAngularVelocity.Y);
+                    controller.SetInput(8, pd.LocalAngularVelocity.Z);
+
+                    controller.SetInput(9, pd.LocalGForce.X);
+                    controller.SetInput(10, pd.LocalGForce.Y);
+                    controller.SetInput(11, pd.LocalGForce.Z);
+
+                    controller.SetInput(12, pd.EventBoosting);
+                    controller.SetInput(13, pd.EventPrimaryFire);
+                    controller.SetInput(14, pd.EventSecondaryFire);
+                    controller.SetInput(15, pd.EventItemPickup);
+                    controller.SetInput(16, pd.EventDamageTaken);                    
                 }
             }
             catch (Exception ex)
@@ -103,7 +200,15 @@ namespace YawVR_Game_Engine.Plugin
 
         public List<Profile_Component> DefaultProfile()
         {
-            return new List<Profile_Component>();
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("OverloadPlugin.Profiles.DefaultProfile.yawgeprofile"))
+            {
+                TextReader tr = new StreamReader(stream);
+                defProfile = tr.ReadToEnd();
+            }
+
+            var MyComponentsList = new List<Profile_Component>();
+            MyComponentsList = dispatcher.JsonToComponents(defProfile);
+            return MyComponentsList;
         }
 
         public void Exit()
@@ -117,22 +222,7 @@ namespace YawVR_Game_Engine.Plugin
             return new Dictionary<string, ParameterInfo[]>(); // Return empty if no features to report
         }
 
-        /// <summary>
-        /// Text of the inputs that appear in GE's dropdown
-        /// </summary>
-        /// <returns></returns>
-        public string[] GetInputData()
-        {
-            return new string[] { 
-                "Yaw", "Pitch", "Roll",
-                "AngularVelocityZ","AngularVelocityX", "AngularVelocityY",  
-                "gForceX", "gForceY", "gForceZ",
-                "boosting", "primary_fire", "secondary_fire", "picked_up_item", "damage_taken",
-                "LocalAngularVelocityX", "LocalAngularVelocityY", "LocalAngularVelocityZ",
-                "Sway", "Heave", "Surge"
-            }; 
-
-        }
+        
 
         public void Init()
         {
@@ -162,5 +252,9 @@ namespace YawVR_Game_Engine.Plugin
             this.controller = controller;
             this.dispatcher = dispatcher;
         }
+
+        
+
+        
     }
 }
