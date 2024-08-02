@@ -40,8 +40,8 @@ namespace YawVR_Game_Engine.Plugin
 
         public string Description => @"<font color=""green"">v1.1.1
     &quot;Usage:<br>
-    1. Install OLMOD (https://olmod.overloadmaps.com/)<br>
-    2. Install gamemod.dll with telemetry (https://github.com/overload-development-community/olmod/issues/323)<br>
+    1. Install OLMOD <a href=""https://olmod.overloadmaps.com/"">click here</a><br>
+    2. Install GameMod.dll with telemetry into your overload directory (<a href=""https://github.com/drowhunter/olmod/releases/latest"">click here</a>)<br>
     3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu).&quot;;
 </font>";
 
@@ -200,6 +200,8 @@ namespace YawVR_Game_Engine.Plugin
 
         public List<Profile_Component> DefaultProfile()
         {
+            var defProfile = string.Empty;
+
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("OverloadPlugin.Profiles.DefaultProfile.yawgeprofile"))
             {
                 TextReader tr = new StreamReader(stream);
@@ -244,6 +246,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             // should add code to download the olmod and extract it to the game folder
             // just like TheCrew2 plugin does
+
         }
 
         public void SetReferences(IProfileManager controller, IMainFormDispatcher dispatcher)
