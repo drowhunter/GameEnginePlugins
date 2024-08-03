@@ -353,3 +353,4 @@ assets
 /YawGEApiNet
 *_debug.dll
 /Plugins/.vscode
+/output/*
