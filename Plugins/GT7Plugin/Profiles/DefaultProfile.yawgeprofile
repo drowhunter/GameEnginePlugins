@@ -1,6 +1,6 @@
 {
     "GameName": "Gran Turismo 7",
-    "Name": "Version3",
+    "Name": "0.9.2",
     "components": [
         {
             "Constant": false,
@@ -90,12 +90,12 @@
             "Constant": false,
             "Input_index": 4,
             "Output_index": 1,
-            "MultiplierPos": 0.15,
-            "MultiplierNeg": 0.2,
+            "MultiplierPos": 1,
+            "MultiplierNeg": 1,
             "Offset": 0,
             "Inverse": false,
             "Limit": -1,
-            "Smoothing": 0.47284073,
+            "Smoothing": 0.67440164,
             "Enabled": true,
             "Spikeflatter": {
                 "Enabled": true,
