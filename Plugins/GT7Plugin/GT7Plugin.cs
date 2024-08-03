@@ -13,11 +13,13 @@ using System.Threading;
 using Quaternion = System.Numerics.Quaternion;
 using PluginHelper;
 using YawGEAPI;
+using System.IO;
+using System.Timers;
 
 namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
-    [ExportMetadata("Name", "Gran Turismo 7")]
+    [ExportMetadata("Name", "Gran Turismo 7 (0.9.2)")]
     [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
@@ -59,7 +61,8 @@ namespace YawVR_Game_Engine.Plugin
           "Roll",          
           "Sway",
           "Surge",
-          "Heave"         
+          "Heave",
+          "North"
         };
 
         public LedEffect DefaultLED()
@@ -75,15 +78,17 @@ namespace YawVR_Game_Engine.Plugin
 
         public List<Profile_Component> DefaultProfile()
         {
-            return new List<Profile_Component>()
+            var defProfile = string.Empty;
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("GT7Plugin.Profiles.DefaultProfile.yawgeprofile"))
             {
-                new Profile_Component(4, 1, 1f, 0.0f, 0.0f, false, false, -1f, 1f),
-                new Profile_Component(7, 1, 0.5f, 0.0f, 0.0f, false, true, -1f, 0.3f),
-                new Profile_Component(1, 2, 0.1f, 0.0f, 0.0f, false, false, -1f, 0.05f),
-                new Profile_Component(5, 2, 1f, 0.0f, 0.0f, false, true, -1f, 1f),
-                new Profile_Component(0, 1, 0.1f, 0.0f, 0.0f, false, false, -1f, 1f),
-                new Profile_Component(3, 0, 1f, 0.0f, 0.0f, false, true, -1f, 1f)
-            };
+                TextReader tr = new StreamReader(stream);
+                defProfile = tr.ReadToEnd();
+            }
+
+            var MyComponentsList = new List<Profile_Component>();
+            MyComponentsList = _dispatcher.JsonToComponents(defProfile);
+            return MyComponentsList;
         }
 
         public void Exit()
@@ -187,11 +192,16 @@ namespace YawVR_Game_Engine.Plugin
 
             var surge = 0f;
 
+            var heave = 0f;
+
+            var samplerate = 1 / 60f;
+
             if (_seenPacket)
             {
                 var delta_velocity = local_velocity - _previous_local_velocity;                
 
-                surge = delta_velocity.Z * 100;
+                surge = delta_velocity.Z / samplerate / 9.81f; 
+                heave = delta_velocity.Y / samplerate / 9.81f;
             }
             
             
@@ -207,7 +217,8 @@ namespace YawVR_Game_Engine.Plugin
             _profileManager.SetInput(2, roll);
             _profileManager.SetInput(3, sway);
             _profileManager.SetInput(4, surge);
-            
+            _profileManager.SetInput(5, heave);
+            _profileManager.SetInput(6, packet.RelativeOrientationToNorth);
         }
 
 
