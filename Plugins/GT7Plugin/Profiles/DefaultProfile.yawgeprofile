@@ -1,0 +1,160 @@
+{
+    "GameName": "Gran Turismo 7",
+    "Name": "Version3",
+    "components": [
+        {
+            "Constant": false,
+            "Input_index": 0,
+            "Output_index": 0,
+            "MultiplierPos": 1,
+            "MultiplierNeg": 1,
+            "Offset": 0,
+            "Inverse": false,
+            "Limit": -1,
+            "Smoothing": 0.8914672,
+            "Enabled": false,
+            "Spikeflatter": {
+                "Enabled": false,
+                "Limit": 100,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 1,
+            "Output_index": 1,
+            "MultiplierPos": 0.5,
+            "MultiplierNeg": 0.5,
+            "Offset": 0,
+            "Inverse": false,
+            "Limit": -1,
+            "Smoothing": 0.7728929,
+            "Enabled": true,
+            "Spikeflatter": {
+                "Enabled": false,
+                "Limit": 100,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 2,
+            "Output_index": 2,
+            "MultiplierPos": 0.5,
+            "MultiplierNeg": 0.5,
+            "Offset": 0,
+            "Inverse": false,
+            "Limit": -1,
+            "Smoothing": 0.8484913,
+            "Enabled": true,
+            "Spikeflatter": {
+                "Enabled": true,
+                "Limit": 35,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 3,
+            "Output_index": 2,
+            "MultiplierPos": 0.4,
+            "MultiplierNeg": 0.4,
+            "Offset": 0,
+            "Inverse": true,
+            "Limit": -1,
+            "Smoothing": 0.6588969,
+            "Enabled": true,
+            "Spikeflatter": {
+                "Enabled": true,
+                "Limit": 20,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 4,
+            "Output_index": 1,
+            "MultiplierPos": 0.15,
+            "MultiplierNeg": 0.2,
+            "Offset": 0,
+            "Inverse": false,
+            "Limit": -1,
+            "Smoothing": 0.47284073,
+            "Enabled": true,
+            "Spikeflatter": {
+                "Enabled": true,
+                "Limit": 50,
+                "Strength": 0.1
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 3,
+            "Output_index": 0,
+            "MultiplierPos": 1,
+            "MultiplierNeg": 1,
+            "Offset": 0,
+            "Inverse": true,
+            "Limit": -1,
+            "Smoothing": 1,
+            "Enabled": false,
+            "Spikeflatter": {
+                "Enabled": false,
+                "Limit": 100,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        }
+    ],
+    "effects": {
+        "EffectID": 1,
+        "InputID": 7,
+        "Multiplier": 25,
+        "Colors": [
+            {
+                "R": 66,
+                "G": 135,
+                "B": 245
+            },
+            {
+                "R": 80,
+                "G": 80,
+                "B": 80
+            },
+            {
+                "R": 128,
+                "G": 3,
+                "B": 117
+            },
+            {
+                "R": 110,
+                "G": 201,
+                "B": 12
+            }
+        ]
+    },
+    "functions": []
+}
