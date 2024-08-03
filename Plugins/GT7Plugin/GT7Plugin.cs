@@ -62,7 +62,7 @@ namespace YawVR_Game_Engine.Plugin
           "Sway",
           "Surge",
           "Heave",
-          "North"
+          //"North"
         };
 
         public LedEffect DefaultLED()
@@ -218,7 +218,7 @@ namespace YawVR_Game_Engine.Plugin
             _profileManager.SetInput(3, sway);
             _profileManager.SetInput(4, surge);
             _profileManager.SetInput(5, heave);
-            _profileManager.SetInput(6, packet.RelativeOrientationToNorth);
+            //_profileManager.SetInput(6, packet.RelativeOrientationToNorth);
         }
 
 
