@@ -43,6 +43,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MathsTests.cs" />
     <Compile Include="Maths\RollPitchYawTests.cs" />
     <Compile Include="Maths\WorldVelocity_to_LocalVelocityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
