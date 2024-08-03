@@ -278,6 +278,27 @@
         {
             "Constant": false,
             "Input_index": 12,
+            "Output_index": 3,
+            "MultiplierPos": 25,
+            "MultiplierNeg": 25,
+            "Offset": 0,
+            "Inverse": false,
+            "Limit": -1,
+            "Smoothing": 1,
+            "Enabled": true,
+            "Spikeflatter": {
+                "Enabled": false,
+                "Limit": 100,
+                "Strength": 0.5
+            },
+            "Deadzone": 0,
+            "Type": 0,
+            "Condition": [],
+            "Math": []
+        },
+        {
+            "Constant": false,
+            "Input_index": 12,
             "Output_index": 4,
             "MultiplierPos": 15,
             "MultiplierNeg": 15,
