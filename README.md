@@ -9,7 +9,7 @@ You will require ILRepack to be installed
 2. Then install `ILRepack` by running the following command from an adminstrative command prompt
 
 ```
-choco install ILRepack
+choco install il-repack
 ```
 
 3. Plugin dll's will appear in the Solution Directory/output folder
