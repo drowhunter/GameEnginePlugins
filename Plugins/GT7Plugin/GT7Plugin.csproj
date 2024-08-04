@@ -1,83 +1,47 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\src\yawge\Gameplugins\GT7Plugin.dll-->
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{95D3D9BE-488A-4123-A781-452A96BDC8B2}</ProjectGuid>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyName>GT7Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <RootNamespace>GT7Plugin</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>GT7 Plugin</AssemblyTitle>
+    <Description>GT7 Plugin by Trevor Jones</Description>
+    <Product>GT7Plugin</Product>
+    <Copyright>Copyright ©  2024</Copyright>
+    <FileVersion>0.9.2.0</FileVersion>
+    <AssemblyVersion>0.9.2.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="YawGEAPI">
       <HintPath>..\..\dlls\YawGEAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GT7Plugin.cs" />
-    <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile DependentUpon="Resources.resx" Update="Properties\Resources.cs" />
+  </ItemGroup>
+<ItemGroup>
+	<PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
+	<PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
+	<PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+	<PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
+</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\external\PDTools\PDTools.SimulatorInterface\PDTools.SimulatorInterface.csproj" />
+    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\external\PDTools\PDTools.SimulatorInterface\PDTools.SimulatorInterface.csproj">
-      <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
-      <Name>PDTools.SimulatorInterface</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
-      <Project>{d862262b-97dc-451d-8b3e-19d4e40dfd48}</Project>
-      <Name>PluginHelper</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.3.0</Version>
-    </PackageReference>
+    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Profiles\DefaultProfile.yawgeprofile" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)ge.targets" />
-  <!-- <PropertyGroup>
-    <PostBuildEventDependsOn>
-    $(PostBuildEventDependsOn);
-    PostBuildMacros;
-  </PostBuildEventDependsOn>
-    <PostBuildEvent>REM powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName)_@(VersionNumber).zip -Force"
-REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins" @(VersionNumber)</PostBuildEvent>
-  </PropertyGroup> -->
+  <!--<ItemGroup>
+    <Compile Remove="Plugin\GT7Plugin.cs" />
+  </ItemGroup>-->
+	<Import Project="$(SolutionDir)ge.targets" />
 </Project>

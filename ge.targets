@@ -1,7 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <OutputDir>$(SolutionDir)output\</OutputDir> 
-        <OutFileSuffix>_debug</OutFileSuffix>
+        <OutFileSuffix Condition="$(Configuration) == 'Debug'" >_debug</OutFileSuffix>
     </PropertyGroup>
      
     
@@ -55,7 +55,7 @@
     </Target>
     <Target Name="MoveSingleFile" AfterTargets="CopyToOutput" Condition="'@(CopiedFiles->Count())' == 1">
         <Message Text="[$(ProjectName)]-[MoveSingleFile] Moving single file to $(OutputDir)$(TargetName)$(OutFileSuffix).dll" Importance="High"/>
-        <Copy SourceFiles="$(TargetPath)" DestinationFile="$(OutputDir)$(TargetName)$(OutFileSuffix).dll" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(OutputDir)$(TargetName)$(OutFileSuffix).dll" />
         <RemoveDir Directories="$(SolutionDir)output\$(TargetName)" />
     </Target>
 	

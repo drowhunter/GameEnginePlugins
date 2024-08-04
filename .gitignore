@@ -354,3 +354,5 @@ assets
 *_debug.dll
 /Plugins/.vscode
 /output/*
+*.bak
+.vscode

@@ -9,13 +9,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Drawing;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 
-using GT7.Properties;
+using GT7Plugin.Properties;
 
 using PDTools.SimulatorInterface;
 
