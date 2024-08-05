@@ -11,6 +11,7 @@
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+	<!--<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>-->  
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,12 +73,5 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)ge.targets" />
-  <!-- <PropertyGroup>
-    <PostBuildEventDependsOn>
-    $(PostBuildEventDependsOn);
-    PostBuildMacros;
-  </PostBuildEventDependsOn>
-    <PostBuildEvent>REM powershell "Get-ChildItem -Path $(TargetDir) -exclude YawGEAPI.dll,*.config | Compress-Archive -DestinationPath $(SolutionDir)output\$(TargetName).$(ConfigurationName)_@(VersionNumber).zip -Force"
-REM xcopy /Y "$(TargetDir)" "E:\_Apps\GameEngine_2_6\Gameplugins" @(VersionNumber)</PostBuildEvent>
-  </PropertyGroup> -->
+  
 </Project>

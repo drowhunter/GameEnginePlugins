@@ -2,24 +2,26 @@
 
 using PDTools.SimulatorInterface;
 
+using PluginHelper;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
-using Quaternion = System.Numerics.Quaternion;
-using PluginHelper;
+
 using YawGEAPI;
-using System.IO;
-using System.Timers;
+
+using Quaternion = System.Numerics.Quaternion;
 
 namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
-    [ExportMetadata("Name", "Gran Turismo 7 (0.9.2)")]
+    [ExportMetadata("Name", "Gran Turismo 7 (0.9.3)")]
     [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
@@ -33,7 +35,7 @@ namespace YawVR_Game_Engine.Plugin
         private Vector3 _previous_local_velocity = new Vector3(0, 0, 0);
         
         
-        private float _sampling_rate = 1f / 60f;
+        
 
         
         public int STEAM_ID => 0;
@@ -62,7 +64,12 @@ namespace YawVR_Game_Engine.Plugin
           "Sway",
           "Surge",
           "Heave",
-          //"North"
+          "Kph",
+          "MaxKph",
+          "RPM",
+          "OnTrack",
+          "IsPaused",
+          "Loading"
         };
 
         public LedEffect DefaultLED()
@@ -188,6 +195,8 @@ namespace YawVR_Game_Engine.Plugin
             var Q = new Quaternion(packet.Rotation, packet.RelativeOrientationToNorth);
             var local_velocity = Maths.WorldtoLocal(Q, packet.Velocity);
 
+            
+
             var sway = CalculateCentrifugalAcceleration(local_velocity, packet.AngularVelocity);
 
             var surge = 0f;
@@ -213,12 +222,19 @@ namespace YawVR_Game_Engine.Plugin
 
 
             _profileManager.SetInput(0, yaw);
-            _profileManager.SetInput(1, -pitch);
+            _profileManager.SetInput(1, pitch);
             _profileManager.SetInput(2, roll);
             _profileManager.SetInput(3, sway);
             _profileManager.SetInput(4, surge);
             _profileManager.SetInput(5, heave);
-            //_profileManager.SetInput(6, packet.RelativeOrientationToNorth);
+            _profileManager.SetInput(6, packet.MetersPerSecond * 60 * 60 / 1000);
+            _profileManager.SetInput(7, packet.CalculatedMaxSpeed * 60 * 60 / 1000);
+            _profileManager.SetInput(7, packet.EngineRPM);
+            _profileManager.SetInput(8, packet.IsCarOnTrack ? 1f : 0f);
+            _profileManager.SetInput(9, packet.IsPaused ? 1f : 0f);
+            _profileManager.SetInput(10, packet.IsLoadingOrProcessing ? 1f : 0f);
+
+            
         }
 
 

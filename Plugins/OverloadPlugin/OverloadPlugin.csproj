@@ -58,7 +58,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <EmbeddedResource Include="Profiles\DefaultProfile.yawgeprofile" />
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>

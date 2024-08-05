@@ -66,6 +66,8 @@ namespace PluginHelper
                  (float)Math.Cos(a));
         }
 
+       
+
         /// <summary>
         /// Convert quaternion to Euler angles
         /// </summary>
@@ -74,13 +76,15 @@ namespace PluginHelper
         public static (float pitch, float yaw, float roll) ToEuler(this Quaternion q, bool returnDegrees = true)
         {
 
-            var euler = q.ToEuler();            
+            var p = (float) q.ToPitch();
+            var y = (float) q.ToYaw();
+            var r = (float) q.ToRoll();
 
             if (!returnDegrees)
-                return euler;
+                return (p,y,r);
 
             // Convert the angles from radians to degrees
-            return (ToDegrees(euler.pitch), ToDegrees(euler.yaw), ToDegrees(euler.roll));
+            return (ToDegrees(p), ToDegrees(y), ToDegrees(r));
 
         }
 
@@ -140,14 +144,7 @@ namespace PluginHelper
 
         private static double ToRoll(this Quaternion q) => Math.Atan2(2.0 * (q.X * q.Y + q.W * q.Z), 1.0 - 2.0 * (q.X * q.X + q.Z * q.Z));
 
-        public static (float pitch, float yaw, float roll) ToEuler(this Quaternion q)
-        {
-            var loc_pitch = q.ToPitch();
-            var loc_yaw = q.ToYaw();
-            var loc_roll = q.ToRoll();
-
-            return ((float)loc_pitch, (float)loc_yaw, (float)loc_roll);
-        }
+        
 
         
 
