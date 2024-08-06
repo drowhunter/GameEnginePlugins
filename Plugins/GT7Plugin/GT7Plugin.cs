@@ -22,7 +22,7 @@ using Quaternion = System.Numerics.Quaternion;
 namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
-    [ExportMetadata("Name", "Gran Turismo 7 (0.9.3)")]
+    [ExportMetadata("Name", "Gran Turismo 7 (0.9.4)")]
     [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
@@ -121,30 +121,32 @@ namespace YawVR_Game_Engine.Plugin
         public async void Init()
         {
             this._running = true;
-            
-            
-            var simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.GT7, 33471);
+
+            // Cancel token from outside source to end simulator
+            udpServer = new UdpServer(SimulatorInterfaceClient.ReceivePortGT7);
+
+            var simInterface = new SimulatorInterfaceClient("192.168.50.164", SimulatorInterfaceGameType.GT7);
             simInterface.OnReceive += SimInterface_OnReceive;
+            
             simInterface.OnRawData += async (data) =>
             {
-                if(udpServer?.ClientConnected == true)
+                if (udpServer?.ClientConnected == true)
                 {
-                    await udpServer.SendAsync(data);
+                    await udpServer.SendAsync(data, 33741);
                 }
             };
 
-            _cts = new CancellationTokenSource();
 
-            // Cancel token from outside source to end simulator
-            udpServer = new UdpServer(33741);
-            var taskf = udpServer.StartListener(_cts.Token);
+            _cts = new CancellationTokenSource();
+            
 
             var task = simInterface.Start(_cts.Token);
-            
+            var taskf = udpServer.StartListenerAsync(_cts.Token);
 
             try
             {
-                Task.WaitAll(new Task[] { task, taskf });
+                //Task.WaitAll(new Task[] { task, taskf });
+                await Task.WhenAll(task, taskf);    
                 //await task;
             }
             catch (OperationCanceledException e)

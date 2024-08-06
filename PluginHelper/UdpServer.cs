@@ -10,25 +10,72 @@ namespace PluginHelper
 {
     public class UdpServer :IDisposable
     {
-        public bool ClientConnected { get; private set; }
-
-        UdpClient listener;
-        UdpClient sender;
-
-        public IPAddress _ipAddress = IPAddress.Any;
+        public IPAddress _ipAddress = IPAddress.Loopback;
 
         private int _listenPort;
 
-        public UdpServer(int listenPort)
+        public delegate void ClientConnectionDelegate(bool connected);
+
+        public event ClientConnectionDelegate OnClientConnected;
+
+
+
+        private Timer _timer;
+        private bool _clientConnected;
+
+        public bool ClientConnected
         {
+            get => _clientConnected;
+            private set
+            {
+                
+
+                if (_clientConnected != value)
+                {
+                    _clientConnected = value;
+
+                    if (_listenPort > 0)
+                    {
+                        if (value)
+                        {
+                            _timer.Change(TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
+                        }
+                        else
+                        {
+                            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                        }
+                        if (OnClientConnected != null)
+                            OnClientConnected(value);
+                    }
+                }
+            }
+        }
+
+        UdpClient _udpClient;
+        
+
+        
+
+        public UdpServer(int listenPort = 0)
+        {
+            _timer = new Timer(TimerCallback, null, Timeout.Infinite, Timeout.Infinite);
             _listenPort = listenPort;
         }
 
-        public async Task StartListener(  CancellationToken cancellationToken = default)
+        public void TimerCallback(object state)
         {
-            
-            listener = new UdpClient(_listenPort);
-            IPEndPoint groupEP = new IPEndPoint(_ipAddress, _listenPort);
+           _timer.Change(Timeout.Infinite, Timeout.Infinite);
+           ClientConnected = false;
+        }
+
+        public async Task StartListenerAsync(CancellationToken cancellationToken = default)
+        {
+            if (_listenPort > 0)
+            {
+                _udpClient = new UdpClient(new IPEndPoint(_ipAddress, _listenPort));
+                _clientConnected = true;
+                return;
+            }
 
             try
             {
@@ -38,32 +85,35 @@ namespace PluginHelper
                     {
                         throw new TaskCanceledException();
                     }
-                    Console.WriteLine("Waiting for broadcast");
-                    var result = await listener.ReceiveAsync();
+                    
+                    Console.WriteLine("Waiting for packet ...");
+                    var result = await _udpClient.ReceiveAsync();
                     
                     if(result.Buffer.Length == 0)
                     {
-                        Console.WriteLine("Received empty message");
+                        Console.WriteLine("Received empty packet");
                         continue;
                     }
+
                     byte[] bytes = result.Buffer;
-
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Recieved packet: {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
+                    Console.ResetColor();
+                                        
+                    ClientConnected = true;                    
                     
-                    Console.WriteLine($"Received broadcast from {groupEP} :");
-                    Console.WriteLine($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
-
-                    this.ClientConnected = true;
-                    //await Task.Delay(16, cancellationToken);
-                    //await Start(cancellationToken);
                 }
             }
             catch (SocketException e)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(e);
+                Console.ResetColor();
+
             }
             finally
             {
-                listener.Close();
+                Dispose();
             }
         }
 
@@ -72,41 +122,28 @@ namespace PluginHelper
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task SendAsync(byte[] data)
+        public async Task SendAsync(byte[] data, int port)
         {
-            if (listener == null || !ClientConnected)
+            if (_udpClient != null & ClientConnected)
             {
-                await listener.SendAsync(data, data.Length, new IPEndPoint(_ipAddress, _listenPort));
+                await _udpClient.SendAsync(data, data.Length, new IPEndPoint(_ipAddress, port));
             }
-            else
-            {
-                throw new InvalidOperationException("Listener is not initialized or client not connected");
-            }
+            
         }
 
-        //a method to start sending data to client
-        public async Task Start(CancellationToken cancellationToken = default)
-        {
-            DateTime _lastTime = DateTime.Now;
-            int MIN_DELAY = 1000;
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var duration = DateTime.Now - _lastTime;
-                if (duration.TotalMilliseconds < MIN_DELAY)
-                {
-                    await Task.Delay(MIN_DELAY - (int)duration.TotalMilliseconds);
-                }
-                var b = Encoding.ASCII.GetBytes("Hello World");
-                var i = await listener.SendAsync(b, b.Length);
-                _lastTime = DateTime.Now;
-            }
-
-        }
+        
 
         public void Dispose()
         {
-            if (listener != null)
-                listener.Close();
+            try
+            {
+                if (_udpClient != null)
+                    _udpClient.Close();
+            }
+            finally
+            {
+                Console.WriteLine("UdpServer disposed");
+            }
         }
     }
 }
