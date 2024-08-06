@@ -13,6 +13,7 @@ using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 using YawGEAPI;
 
@@ -54,7 +55,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-
+        private UdpServer udpServer;
 
         private static readonly string[] inputs = new string[]
         {
@@ -120,19 +121,31 @@ namespace YawVR_Game_Engine.Plugin
         public async void Init()
         {
             this._running = true;
-
-            SimulatorInterfaceClient simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.GT7);
+            
+            
+            var simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.GT7);
             simInterface.OnReceive += SimInterface_OnReceive;
+            simInterface.OnRawData += async (data) =>
+            {
+                if(udpServer != null)
+                {
+                    await udpServer.SendAsync(data);
+                }
+            };
 
             _cts = new CancellationTokenSource();
 
             // Cancel token from outside source to end simulator
+            udpServer = new UdpServer(33741);
+            var taskf = udpServer.StartListener(_cts.Token);
 
             var task = simInterface.Start(_cts.Token);
+            
 
             try
             {
-                await task;
+                Task.WaitAll(new Task[] { task, taskf });
+                //await task;
             }
             catch (OperationCanceledException e)
             {
@@ -167,7 +180,9 @@ namespace YawVR_Game_Engine.Plugin
             //Console.SetCursorPosition(0, 0);
             try
             {
+                
                 packet.PrintPacket(false);
+
 
             } 
             catch (Exception e)

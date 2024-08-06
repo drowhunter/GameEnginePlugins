@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace PluginHelper
 {
-    internal class UdpServer :IDisposable
+    public class UdpServer :IDisposable
     {
+        public bool ClientConnected { get; private set; }
 
         UdpClient listener;
         UdpClient sender;
@@ -23,7 +24,7 @@ namespace PluginHelper
             _listenPort = listenPort;
         }
 
-        private async Task StartListener(  CancellationToken cancellationToken = default)
+        public async Task StartListener(  CancellationToken cancellationToken = default)
         {
             
             listener = new UdpClient(_listenPort);
@@ -33,6 +34,10 @@ namespace PluginHelper
             {
                 while (true)
                 {
+                    if(cancellationToken.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException();
+                    }
                     Console.WriteLine("Waiting for broadcast");
                     var result = await listener.ReceiveAsync();
                     
@@ -46,8 +51,10 @@ namespace PluginHelper
                     
                     Console.WriteLine($"Received broadcast from {groupEP} :");
                     Console.WriteLine($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
+
+                    this.ClientConnected = true;
                     //await Task.Delay(16, cancellationToken);
-                    await Start(cancellationToken);
+                    //await Start(cancellationToken);
                 }
             }
             catch (SocketException e)
@@ -60,13 +67,38 @@ namespace PluginHelper
             }
         }
 
+        /// <summary>
+        /// send dat to client
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task SendAsync(byte[] data)
+        {
+            if (listener == null || !ClientConnected)
+            {
+                await listener.SendAsync(data, data.Length, new IPEndPoint(_ipAddress, _listenPort));
+            }
+            else
+            {
+                throw new InvalidOperationException("Listener is not initialized or client not connected");
+            }
+        }
+
         //a method to start sending data to client
         public async Task Start(CancellationToken cancellationToken = default)
         {
-            while(!cancellationToken.IsCancellationRequested)
+            DateTime _lastTime = DateTime.Now;
+            int MIN_DELAY = 1000;
+            while (!cancellationToken.IsCancellationRequested)
             {
+                var duration = DateTime.Now - _lastTime;
+                if (duration.TotalMilliseconds < MIN_DELAY)
+                {
+                    await Task.Delay(MIN_DELAY - (int)duration.TotalMilliseconds);
+                }
                 var b = Encoding.ASCII.GetBytes("Hello World");
                 var i = await listener.SendAsync(b, b.Length);
+                _lastTime = DateTime.Now;
             }
 
         }
