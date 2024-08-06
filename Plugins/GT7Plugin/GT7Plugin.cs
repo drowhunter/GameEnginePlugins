@@ -123,11 +123,11 @@ namespace YawVR_Game_Engine.Plugin
             this._running = true;
             
             
-            var simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.GT7);
+            var simInterface = new SimulatorInterfaceClient(IPAddress.Broadcast.ToString(), SimulatorInterfaceGameType.GT7, 33471);
             simInterface.OnReceive += SimInterface_OnReceive;
             simInterface.OnRawData += async (data) =>
             {
-                if(udpServer != null)
+                if(udpServer?.ClientConnected == true)
                 {
                     await udpServer.SendAsync(data);
                 }
