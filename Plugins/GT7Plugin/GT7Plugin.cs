@@ -34,10 +34,14 @@ namespace YawVR_Game_Engine.Plugin
         private bool _seenPacket = false;
         
         private Vector3 _previous_local_velocity = new Vector3(0, 0, 0);
-        
-        
-        
 
+
+        private List<UserSetting> userSettings = new List<UserSetting> {
+            new UserSetting { Name = "IP Address", DisplayName = "IP Address", SettingType = SettingType.String, Value = "255.255.255.255" }
+            //new UserSetting { Name = "Port", DisplayName = "Port", SettingType = SettingType.Number, Value = 33740 }
+        };
+
+        private UserSettingsManager _userSettingsManager;
         
         public int STEAM_ID => 0;
 
@@ -121,6 +125,12 @@ namespace YawVR_Game_Engine.Plugin
         public async void Init()
         {
             this._running = true;
+            _cts = new CancellationTokenSource();
+
+
+            _userSettingsManager = new UserSettingsManager(this.GetType().Name);
+            await _userSettingsManager.InitAsync(userSettings, _cts.Token);
+            
 
             // Cancel token from outside source to end simulator
             udpServer = new UdpServer(SimulatorInterfaceClient.ReceivePortGT7);
@@ -137,7 +147,7 @@ namespace YawVR_Game_Engine.Plugin
             };
 
 
-            _cts = new CancellationTokenSource();
+            
             
 
             var task = simInterface.Start(_cts.Token);

@@ -50,5 +50,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
+      <Project>{1d53fce9-bfbd-475a-8079-c5ba1b98313c}</Project>
+      <Name>PluginHelper</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

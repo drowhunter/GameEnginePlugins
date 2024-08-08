@@ -116,10 +116,10 @@ namespace YawVR_Game_Engine.Plugin
       this.udpClient = new UdpClient();
       this.udpClient.Client.ReceiveTimeout = 1000;
       this.udpClient.Connect(this.input, 9996);
-      byte[] dgram1 = new YawVR_Game_Engine.Plugin.ACPlugin.Handshaker(1, 1, 0).toByte();
+      byte[] dgram1 = new Handshaker(1, 1, 0).toByte();
       Thread.Sleep(250);
       this.udpClient.Send(dgram1, dgram1.Length);
-      byte[] dgram2 = new YawVR_Game_Engine.Plugin.ACPlugin.Handshaker(1, 1, 1).toByte();
+      byte[] dgram2 = new Handshaker(1, 1, 1).toByte();
       this.udpClient.Send(dgram2, dgram2.Length);
     }
 

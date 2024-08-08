@@ -47,6 +47,7 @@
     <Compile Include="Maths\RollPitchYawTests.cs" />
     <Compile Include="Maths\WorldVelocity_to_LocalVelocityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter">
@@ -60,8 +61,12 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\FormHelper\FormHelper.csproj">
+      <Project>{e78c493e-b05c-45ed-aec3-f02e17c2f369}</Project>
+      <Name>FormHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
-      <Project>{d862262b-97dc-451d-8b3e-19d4e40dfd48}</Project>
+      <Project>{1d53fce9-bfbd-475a-8079-c5ba1b98313c}</Project>
       <Name>PluginHelper</Name>
     </ProjectReference>
   </ItemGroup>
