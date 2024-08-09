@@ -1,22 +1,24 @@
-﻿using Microsoft.VisualBasic;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
+
+
 
 namespace FormHelper
 {
     public enum SettingType 
     {        
         String,
+        IPAddress,
         Number,
         Bool,
         File,
@@ -86,73 +88,168 @@ namespace FormHelper
 
         public async Task ShowFormAsync(List<string> settings, CancellationToken cancellationToken = default)
         {
-            
 
-            using (Form form = new Form() { Width = 400, Height= settings.Count * 50 + 100,  Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable, Dock = DockStyle.Fill  })
+            //Height= settings.Count * 50 + 100,
+            using (Form form = new Form() { Width = 400, Height = 400, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowOnly,   Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable  })
             {
-                List<UserSetting> selectedSettings = new List<UserSetting>();
+                var fv = new FormValidation(form);
 
-                var save    = new Button()  { Text = "&OK"      , Anchor = AnchorStyles.Bottom | AnchorStyles.Right , DialogResult = DialogResult.OK };
-                var cancel  = new Button()  { Text = "&Cancel"  , Anchor = AnchorStyles.Bottom | AnchorStyles.Right, DialogResult = DialogResult.Cancel };
+                //var ep = new ErrorProvider();
+                //ep.ContainerControl = form;
+
+
+                var pnl = new Panel() {  AutoScroll = true, Dock = DockStyle.Fill, Padding = new Padding(5), Margin = new Padding(5) , BorderStyle = BorderStyle.FixedSingle };
+                form.Controls.Add(pnl);
+
+                var gb = new GroupBox() {  Text = "Settings", Dock = DockStyle.Fill, Padding = new Padding(5), Margin = new Padding(5) };
+                pnl.Controls.Add(gb);
+
 
                 
-                //save.Top = form.Height - save.Height - 20;
-                cancel.Top = save.Top;
-                //save.Left = form.Width - save.Width - 10;
-                cancel.Left = save.Right + 10;
+
+                var save    = new Button()  { Text = "&OK"  ,  Top = form.Bottom - 80,  Anchor = AnchorStyles.None , DialogResult = DialogResult.OK };               
+                save.Left = form.Width / 2 - save.Width / 2;
 
                 save.Click += (s, e) => form.Close();
-                cancel.Click += (s, e) => form.Close();
+                
 
-                form.Controls.Add(save);
+                gb.Controls.Add(save);
 
-                form.FormClosed += (s, e) =>
+
+                var selectedSettings = _settings.Where(_ => settings.Contains(_.Name)).Select(_ => _.Clone());
+
+
+                foreach (var (setting,i)  in selectedSettings.WithIndex())
                 {
-                    Console.WriteLine("close reason : " + e.CloseReason.ToString());
-                    if (e.CloseReason == CloseReason.UserClosing)
-                    {
-                        Console.WriteLine("User closed the form");
+                    
+                    var pnlSetting = new FlowLayoutPanel() { 
+                        FlowDirection = FlowDirection.LeftToRight, 
+                        Dock = DockStyle.Top, 
+                        Height = 50, 
+                        Padding = new Padding(5), 
+                        Margin = new Padding(5), 
+                        BackColor = System.Drawing.Color.LightGray,
+                        AutoSize = true,
+                        AutoSizeMode = AutoSizeMode.GrowAndShrink
+                    };
 
-                        //selectedSettings.Clear();
-                    }
-                    //else
-                    //{
-                    //    Console.WriteLine("User clicked save");
-                    //    foreach (var setting in selectedSettings)
-                    //    {
-                    //        var ss = _settings.Single(_ => _.Name == setting.Name).Value;
+                    gb.Controls.Add(pnlSetting);
 
-                    //    }
+                    pnlSetting.BringToFront();
 
-                    //};
-                };
-
-                selectedSettings = _settings.Where(_ => settings.Contains(_.Name)).Select(_ => _.Clone()).ToList();
-
-
-                for (var i = 0; i < selectedSettings.Count; i++)
-                {
-                    var setting = selectedSettings[i];
-
-
+                    
                     switch (setting.SettingType)
                     {
                         case SettingType.String:
-                            //setting.Value = Interaction.InputBox("Enter the host address of Assetto Corsa\nLeave default value if its running on this PC", "Endpoint", "127.0.0.1");
-                            form.Controls.Add(new Label() { Text = setting.DisplayName, Top = 10 + (i * 50), Left = 10 });
+                            {
+                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
 
-                            var tb = new TextBox() { Name = setting.Name, Text = setting.Value.ToString(), Top = 10 + (i * 50), Left = 100, Width = 200, TextAlign = HorizontalAlignment.Left };
-                            tb.DataBindings.Add("Text", setting, "Value");
-                            form.Controls.Add(tb);
+                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString() };
+                                tb.DataBindings.Add("Text", setting, "Value");
+                                
 
+                                tb.Validating += fv.Required;
+
+                                pnlSetting.Controls.Add(tb);
+
+                            }
                             break;
                         case SettingType.Number:
+                            {
+                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+
+                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), CausesValidation = true,  };
+                                tb.Validating += fv.MustBeNumber;
+
+                                tb.DataBindings.Add("Text", setting, "Value");
+                                pnlSetting.Controls.Add(tb);
+
+                            }
                             break;
                         case SettingType.Bool:
+                            {
+                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+
+                                var cb = new CheckBox() { Name = setting.Name, Checked = (bool)(setting.Value ?? false) };
+                                cb.DataBindings.Add("Checked", setting, "Value");
+                                pnlSetting.Controls.Add(cb);
+                            }
                             break;
                         case SettingType.File:
+                            {
+                                //var v = new GroupBox { Text = setting.DisplayName, Margin = new Padding(5), Dock = DockStyle.Fill };
+                                //pnlSetting.Controls.Add(v);
+
+                                
+                                //pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+
+                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), Enabled = false, Width = pnlSetting.Width - 10 };
+                                tb.DataBindings.Add("Text", setting, "Value");
+                                tb.Validating += fv.FileExists;
+
+                                pnlSetting.Controls.Add(tb);
+
+                                pnlSetting.SetFlowBreak(tb, true);
+
+                                var btn = new Button() { Text = "&Browse" };
+                                pnlSetting.Controls.Add(btn);
+
+                                
+
+                                btn.Click += (s, e) => {
+                                    var ofd = new OpenFileDialog();
+                                    ofd.FileName = tb.Text;
+                                    ofd.CheckFileExists = true;
+
+                                    if (File.Exists(tb.Text))
+                                        ofd.InitialDirectory = Path.GetDirectoryName(tb.Text);
+                                    
+                                    
+                                    if (ofd.ShowDialog() == DialogResult.OK)
+                                    {
+                                        tb.Text = ofd.FileName;
+                                    }
+                                };
+                            }
                             break;
                         case SettingType.Directory:
+                            {
+                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), Enabled = false, Width = pnlSetting.Width - 10 };
+                                tb.DataBindings.Add("Text", setting, "Value");
+                                tb.Validating += fv.FolderExists;
+                                tb.TextChanged += (s, e) => {
+                                    var textBox1 = (Control)s;
+                                    Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
+                                    textBox1.Width = size.Width;
+                                    textBox1.Height = size.Height;
+                                };
+                                Size sz = TextRenderer.MeasureText(tb.Text, tb.Font);
+                                tb.Width = sz.Width;
+                                tb.Height = sz.Height;
+
+                                pnlSetting.Controls.Add(tb);
+
+                                pnlSetting.SetFlowBreak(tb, true);
+
+                                var btn = new Button() { Text = "&Browse" };
+                                pnlSetting.Controls.Add(btn);
+
+
+
+                                btn.Click += (s, e) =>
+                                {
+                                    var fb = new FolderBrowserDialog();
+                                    fb.SelectedPath = tb.Text;
+
+                                    if (Directory.Exists(tb.Text))
+                                        fb.SelectedPath = tb.Text;
+
+                                    if (fb.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fb.SelectedPath))
+                                    {
+                                        tb.Text = fb.SelectedPath;
+                                    }
+                                };
+                            }
                             break;
                     }
 
