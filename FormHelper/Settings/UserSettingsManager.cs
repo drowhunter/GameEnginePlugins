@@ -1,10 +1,7 @@
-﻿using FormHelper.Properties;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -19,53 +16,18 @@ using System.Windows.Forms;
 
 namespace FormHelper
 {
-    public enum SettingType 
-    {        
-        String,
-        //IPAddress,
-        //Number,
-        Bool,
-        File,
-        Directory        
-    }
-    //public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> source)
-    //{
-    //    return source.Select((item, index) => (item, index));
-    //}
-    [DebuggerDisplay("{Name}( {SettingType}) = {Value}")]
-    public class UserSetting
-    {
-        public string DisplayName { get; set; }
-
-        public string Name { get; set; }
-
-        public SettingType SettingType { get; set; }
-
-        public object Value { get; set; }
-
-        public string Description { get; set; }
-
-        public string ValidationRegex { get; set; }
-
-        public Dictionary<string, string> ValidationEnabledWhen { get; set; } = new Dictionary<string, string>();
-
-        public Dictionary<string, string> EnabledWhen { get; set; } = new Dictionary<string, string>();
-
-        public UserSetting Clone()
-        {
-            return JsonConvert.DeserializeObject<UserSetting>(JsonConvert.SerializeObject(this));
-        }
-    }
-    
 
 
-    public partial class UserSettingsManager
+
+
+
+    public class UserSettingsManager<TStrorage> where TStrorage : IUserSettingStorage, new()
     {
         private string _pluginName;
 
         private List<UserSetting> _settings = null;
 
-        private IUserSettingStorage _storage;
+        private TStrorage _storage;
 
 
         public delegate void SettingsChangedEventHandler(object sender, List<UserSetting> changed);
@@ -76,14 +38,15 @@ namespace FormHelper
         {
             
             _pluginName = pluginName;
-            _storage = new RegistrySettingsStorage(pluginName);            
+            _storage = new TStrorage();  
+            _storage.PluginName = pluginName;
         }
 
         public async Task LoadAsync(IEnumerable<UserSetting> defaultSettings, CancellationToken cancellationToken = default)
         {
             
 
-            var settings = ( await _storage.Load()).ToList();
+            var settings = ( await _storage.LoadAsync()).ToList();
 
             foreach (var s in settings)
             {
@@ -167,7 +130,7 @@ namespace FormHelper
                                 if (mustValidate)
                                 {
 
-                                    if(!fv.Validate(ctl, e, setting.ValidationRegex))
+                                    if(!fv.Validate(ctl, e, setting.ValidationRegex, setting.ErrorMessage))
                                     {
                                         break;
                                     }
@@ -210,7 +173,8 @@ namespace FormHelper
                         Height = 50, 
                         Padding = new Padding(5), 
                         Margin = new Padding(5), 
-                        BackColor = System.Drawing.Color.LightGray,
+                        BackColor = Color.LightGray,
+                        
                         AutoSize = true,
                         AutoSizeMode = AutoSizeMode.GrowAndShrink
                     };
@@ -373,7 +337,7 @@ namespace FormHelper
                             OnSettingsChanged?.Invoke(this, changed.Select(_=>_.n).ToList());
                         }
 
-                        await _storage.Save(changed.Select(_ => _.n));
+                        await _storage.SaveAsync(changed.Select(_ => _.n));
                     }
                     else
                     {

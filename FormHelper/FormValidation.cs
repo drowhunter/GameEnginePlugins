@@ -25,15 +25,19 @@ namespace FormHelper
             ep.ContainerControl = form;
         }
 
-        public bool Validate(Control ctl,CancelEventArgs e, string validationExpression)
+        public bool Validate(Control ctl,CancelEventArgs e, string validationExpression, string errorMessage = null)
         {
             if (ctl != null)
             {
+                
                 var val = ctl.Value() + "";
-                if (!Regex.IsMatch(val, validationExpression, RegexOptions.IgnoreCase))
+                if (validationExpression != null)
                 {
-                    ep.SetError(ctl, "Invalid");
-                    e.Cancel = true;
+                    if (!Regex.IsMatch(val, validationExpression, RegexOptions.IgnoreCase))
+                    {
+                        ep.SetError(ctl, errorMessage ?? "Invalid");
+                        e.Cancel = true;
+                    }
                 }
             }
             return !e.Cancel;

@@ -4,18 +4,47 @@ using FormHelper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Testing.Extensions.TrxReport.Abstractions;
 
 namespace PluginHelperTests
 {
     [TestClass]
     public class FormTests
     {
+
+        public FormTests()
+        {
+                
+        }
+
+
         [TestMethod]
         public async Task PluginShouldInit()
         {
             // Arrange
             var pluginName = "TestPlugin";
-            var defaultSettings = new List<UserSetting>
+
+            var userSettingsManager = new UserSettingsManager<RegistrySettingsStorage>(pluginName);
+
+            // Act
+            await userSettingsManager.LoadAsync(defaultSettings);
+            
+            
+
+            userSettingsManager.OnSettingsChanged += (s, e) =>
+            {
+                var val = userSettingsManager.Get<string>("ip");
+                // Assert
+                Assert.IsNotNull(val);
+            };
+
+
+            await userSettingsManager.ShowFormAsync(defaultSettings.Select(_ => _.Name).ToList());
+            
+
+        }
+
+        List<UserSetting> defaultSettings = new List<UserSetting>
             {
                 new UserSetting
                 {
@@ -53,31 +82,9 @@ namespace PluginHelperTests
                     Name = "gamefolder",
                     SettingType = SettingType.Directory,
                     Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
-                    EnabledWhen = new Dictionary<string, string> {
-                    { "forwardingEnabled", "true" }
-                }
+                    EnabledWhen = new Dictionary<string, string> {{ "forwardingEnabled", "true" }},
+                    ErrorMessage = "Game folder does not exist"
                 }
             };
-
-
-            var userSettingsManager = new UserSettingsManager(pluginName);
-
-            // Act
-            await userSettingsManager.LoadAsync(defaultSettings);
-            
-            
-
-            userSettingsManager.OnSettingsChanged += (s, e) =>
-            {
-                var val = userSettingsManager.Get<string>("ip");
-                // Assert
-                Assert.IsNotNull(val);
-            };
-
-
-            await userSettingsManager.ShowFormAsync(defaultSettings.Select(_ => _.Name).ToList());
-            
-
-        }
     }
 }
