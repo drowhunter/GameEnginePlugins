@@ -25,6 +25,20 @@ namespace FormHelper
             ep.ContainerControl = form;
         }
 
+        public bool Validate(Control ctl,CancelEventArgs e, string validationExpression)
+        {
+            if (ctl != null)
+            {
+                var val = ctl.Value() + "";
+                if (!Regex.IsMatch(val, validationExpression, RegexOptions.IgnoreCase))
+                {
+                    ep.SetError(ctl, "Invalid");
+                    e.Cancel = true;
+                }
+            }
+            return !e.Cancel;
+        }
+
         public void Required(object sender, CancelEventArgs e)
         {
             var ctl = (Control)sender;

@@ -16,34 +16,37 @@ namespace PluginHelperTests
             // Arrange
             var pluginName = "TestPlugin";
             var settings = new List<UserSetting>();
-            //Enumerable.Range(1,2).Select(i => new UserSetting
-            //{
-            //    DisplayName = $"Test Setting {i}",
-            //    Name = $"TestSetting{i}",
-            //    SettingType = SettingType.String,
-            //    Value = $"Test Value {i}"
-            //}).ToList();
-           
+            
             settings.Add(new UserSetting
             {
                 DisplayName = "Udp Forwarding",
-                Name = "udp",
+                Name = "forwardingEnabled",
                 SettingType = SettingType.Bool,
                 Value = false
             });
             settings.Add(new UserSetting
             {
-                DisplayName = $"Udp Port",
-                Name = "port",
-                SettingType = SettingType.Number,
-                Value = null
+                DisplayName = $"Udp Forwarding Port",
+                Name = "forwardingPort",
+                SettingType = SettingType.String,
+                Value = null,
+                ValidationRegex = @"\d{1,5}",
+                ValidationEnabledWhen = new Dictionary<string, string> { 
+                    { "forwardingEnabled", "true" } 
+                },
+                EnabledWhen = new Dictionary<string, string> { 
+                    { "forwardingEnabled", "true" } 
+                }
             });
+
             settings.Add(new UserSetting
             {
                 DisplayName = $"IP Address",
                 Name = "ip",
-                SettingType = SettingType.IPAddress,
-                Value = "255.255.255.255"
+                SettingType = SettingType.String,
+                Value = "255.255.255.255",
+                ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
+
             });
 
             settings.Add(new UserSetting
@@ -51,7 +54,10 @@ namespace PluginHelperTests
                 DisplayName = "Game Folder",
                 Name = "gamefolder",
                 SettingType = SettingType.Directory,
-                Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload"
+                Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
+                EnabledWhen = new Dictionary<string, string> { 
+                    { "forwardingEnabled", "true" } 
+                }
             });
 
 

@@ -1,10 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using FormHelper.Properties;
+
+using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,8 +22,8 @@ namespace FormHelper
     public enum SettingType 
     {        
         String,
-        IPAddress,
-        Number,
+        //IPAddress,
+        //Number,
         Bool,
         File,
         Directory        
@@ -28,6 +32,7 @@ namespace FormHelper
     //{
     //    return source.Select((item, index) => (item, index));
     //}
+    [DebuggerDisplay("{Name}( {SettingType}) = {Value}")]
     public class UserSetting
     {
         public string DisplayName { get; set; }
@@ -38,6 +43,14 @@ namespace FormHelper
 
         public object Value { get; set; }
 
+        public string Description { get; set; }
+
+        public string ValidationRegex { get; set; }
+
+        public Dictionary<string, string> ValidationEnabledWhen { get; set; } = new Dictionary<string, string>();
+
+        public Dictionary<string, string> EnabledWhen { get; set; } = new Dictionary<string, string>();
+
         public UserSetting Clone()
         {
             return JsonConvert.DeserializeObject<UserSetting>(JsonConvert.SerializeObject(this));
@@ -46,7 +59,7 @@ namespace FormHelper
     
 
 
-    public class UserSettingsManager
+    public partial class UserSettingsManager
     {
         private string _pluginName;
 
@@ -58,10 +71,7 @@ namespace FormHelper
         {
             
             _pluginName = pluginName;
-            _storage = new RegistrySettingsStorage(pluginName);
-
-
-            
+            _storage = new RegistrySettingsStorage(pluginName);            
         }
 
         public async Task InitAsync(IEnumerable<UserSetting> defaultSettings, CancellationToken cancellationToken = default)
@@ -81,21 +91,106 @@ namespace FormHelper
 
             _settings = defaultSettings.ToList();
 
-            await ShowFormAsync(defaultSettings.Select(s => s.Name).ToList() , cancellationToken);
+            var newSettings = ShowForm(defaultSettings.Select(s => s.Name));
 
-            
+            if (newSettings != null)
+            {
+                foreach (var setting in newSettings)
+                {
+                    var ss = _settings.Single(_ => _.Name == setting.Name);
+                    if(ss.Value?.ToString() != setting.Value?.ToString())
+                        ss.Value = setting.Value;
+
+                }
+
+                await _storage.Save(newSettings);
+            }
+            else
+            {
+                Console.WriteLine("User cancelled the form");
+            }
         }
 
-        public async Task ShowFormAsync(List<string> settings, CancellationToken cancellationToken = default)
+
+
+        private void RefreshControls(TrackedItemCollection items, Control changed = null)
+        {
+            foreach (var sett in items.Settings.Where(_ => _.EnabledWhen != null && _.EnabledWhen.Any() && (changed == null ? true : _.EnabledWhen.ContainsKey(changed.Name))))
+            {
+                items[sett.Name].Control.Enabled = sett.EnabledWhen.All(enabledKvp => Regex.IsMatch(items[enabledKvp.Key].Control.Value() + "", enabledKvp.Value, RegexOptions.IgnoreCase));
+
+                foreach(var ctl in items[sett.Name].OtherControls)
+                {
+                    ctl.Enabled = items[sett.Name].Control.Enabled;
+                }
+            }
+        }
+
+        public List<UserSetting> ShowForm(IEnumerable<string> settings)
         {
 
+            var trackedStuff = new TrackedItemCollection(settings.Select(_ => new TrackedItem { Name = _, Control = null, Setting = _settings.Single(s => s.Name == _).Clone() }));
+            
+
+            trackedStuff.OnValueChanged += (changedControl, e) => {
+
+                RefreshControls(trackedStuff, changedControl);
+            };
+
+
+
             //Height= settings.Count * 50 + 100,
-            using (Form form = new Form() { Width = 400, Height = 400, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowOnly,   Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable  })
+            using (Form form = new Form() { Anchor = AnchorStyles.None, Width = 400, Height = 400, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowOnly,   Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable  })
             {
                 var fv = new FormValidation(form);
+                var requiresValidation = new List<Control>();
 
-                //var ep = new ErrorProvider();
-                //ep.ContainerControl = form;
+                #region Validation
+                form.FormClosing += (s, e) =>
+                {
+                    if (form.DialogResult == DialogResult.OK)
+                    {
+
+                        var settingsThatRequireValidation = trackedStuff.Settings.Where(_ => requiresValidation.Any(c => c.Name == _.Name)).ToList();
+
+                        foreach (var setting in settingsThatRequireValidation)
+                        {
+                            var ctl = requiresValidation.Find(_ => _.Name == setting.Name); 
+                            
+                            if (ctl != null && ctl.Enabled)
+                            {
+                                bool mustValidate = true;
+
+
+                                if (setting.ValidationEnabledWhen != null)
+                                {
+                                    var deps = setting.ValidationEnabledWhen.Select(_ => new Tuple<string, Control>(_.Value, form.Controls.Find(_.Key, true).FirstOrDefault()));
+
+                                    mustValidate = deps.All(_ => {
+
+                                        var (rgx, cntl) = _;
+
+                                        var m = Regex.IsMatch(cntl.Value() + "", rgx, RegexOptions.IgnoreCase);
+                                        return m;
+                                    });
+
+                                }
+
+                                if (mustValidate)
+                                {
+
+                                    if(!fv.Validate(ctl, e, setting.ValidationRegex))
+                                    {
+                                        break;
+                                    }
+
+                                }
+                            }
+                        }                        
+                    }
+                };
+
+                #endregion
 
 
                 var pnl = new Panel() {  AutoScroll = true, Dock = DockStyle.Fill, Padding = new Padding(5), Margin = new Padding(5) , BorderStyle = BorderStyle.FixedSingle };
@@ -112,14 +207,13 @@ namespace FormHelper
 
                 save.Click += (s, e) => form.Close();
                 
-
                 gb.Controls.Add(save);
 
 
-                var selectedSettings = _settings.Where(_ => settings.Contains(_.Name)).Select(_ => _.Clone());
+                
 
 
-                foreach (var (setting,i)  in selectedSettings.WithIndex())
+                foreach (var (setting,i)  in trackedStuff.Settings.WithIndex())
                 {
                     
                     var pnlSetting = new FlowLayoutPanel() { 
@@ -137,155 +231,141 @@ namespace FormHelper
 
                     pnlSetting.BringToFront();
 
+                    Control newControl = null;
                     
                     switch (setting.SettingType)
                     {
                         case SettingType.String:
+                        //case SettingType.Number:
                             {
-                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = ContentAlignment.MiddleLeft });
 
-                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString() };
-                                tb.DataBindings.Add("Text", setting, "Value");
+                                newControl = new TextBox() { Name = setting.Name };
+                                newControl.SetValue(setting.Value?.ToString());
+                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));                               
+
+                                if(setting.ValidationRegex != null)
+                                {
+                                    requiresValidation.Add(newControl);
+                                }
                                 
-
-                                tb.Validating += fv.Required;
-
-                                pnlSetting.Controls.Add(tb);
+                                pnlSetting.Controls.Add(newControl);
 
                             }
                             break;
-                        case SettingType.Number:
-                            {
-                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
-
-                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), CausesValidation = true,  };
-                                tb.Validating += fv.MustBeNumber;
-
-                                tb.DataBindings.Add("Text", setting, "Value");
-                                pnlSetting.Controls.Add(tb);
-
-                            }
-                            break;
+                        
                         case SettingType.Bool:
                             {
                                 pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
 
-                                var cb = new CheckBox() { Name = setting.Name, Checked = (bool)(setting.Value ?? false) };
-                                cb.DataBindings.Add("Checked", setting, "Value");
-                                pnlSetting.Controls.Add(cb);
+                                newControl = new CheckBox() { Name = setting.Name };
+                                newControl.SetValue(setting.Value ?? false);
+                                if(setting.ValidationRegex != null)
+                                {
+                                    requiresValidation.Add(newControl);
+                                }
+
+                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                                pnlSetting.Controls.Add(newControl);
                             }
                             break;
                         case SettingType.File:
                             {
-                                //var v = new GroupBox { Text = setting.DisplayName, Margin = new Padding(5), Dock = DockStyle.Fill };
-                                //pnlSetting.Controls.Add(v);
-
+                                newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
+                                newControl.SetValue(setting.Value);
+                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                                //tb.Validating += fv.FileExists;
                                 
-                                //pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+                               requiresValidation.Add(newControl);
+                                
+                               
+                                pnlSetting.Controls.Add(newControl);
 
-                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), Enabled = false, Width = pnlSetting.Width - 10 };
-                                tb.DataBindings.Add("Text", setting, "Value");
-                                tb.Validating += fv.FileExists;
-
-                                pnlSetting.Controls.Add(tb);
-
-                                pnlSetting.SetFlowBreak(tb, true);
+                                pnlSetting.SetFlowBreak(newControl, true);
 
                                 var btn = new Button() { Text = "&Browse" };
                                 pnlSetting.Controls.Add(btn);
 
-                                
+                                trackedStuff[setting.Name].OtherControls.Add(btn);
 
                                 btn.Click += (s, e) => {
                                     var ofd = new OpenFileDialog();
-                                    ofd.FileName = tb.Text;
+                                    ofd.FileName = newControl.Value<string>();
                                     ofd.CheckFileExists = true;
 
-                                    if (File.Exists(tb.Text))
-                                        ofd.InitialDirectory = Path.GetDirectoryName(tb.Text);
+                                    if (File.Exists(ofd.FileName))
+                                        ofd.InitialDirectory = Path.GetDirectoryName(ofd.FileName);
                                     
                                     
                                     if (ofd.ShowDialog() == DialogResult.OK)
                                     {
-                                        tb.Text = ofd.FileName;
+                                        newControl.SetValue(ofd.FileName);
                                     }
                                 };
                             }
                             break;
                         case SettingType.Directory:
                             {
-                                var tb = new TextBox() { Name = setting.Name, Text = setting.Value?.ToString(), Enabled = false, Width = pnlSetting.Width - 10 };
-                                tb.DataBindings.Add("Text", setting, "Value");
-                                tb.Validating += fv.FolderExists;
-                                tb.TextChanged += (s, e) => {
+                                newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
+                                newControl.SetValue(setting.Value?.ToString());
+                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                                //tb.Validating += fv.FolderExists;
+                                requiresValidation.Add(newControl);
+
+                                newControl.TextChanged += (s, e) => {
                                     var textBox1 = (Control)s;
                                     Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
                                     textBox1.Width = size.Width;
                                     textBox1.Height = size.Height;
                                 };
-                                Size sz = TextRenderer.MeasureText(tb.Text, tb.Font);
-                                tb.Width = sz.Width;
-                                tb.Height = sz.Height;
+                                Size sz = TextRenderer.MeasureText(newControl.Text, newControl.Font);
+                                newControl.Width = sz.Width;
+                                newControl.Height = sz.Height;
 
-                                pnlSetting.Controls.Add(tb);
+                                pnlSetting.Controls.Add(newControl);
 
-                                pnlSetting.SetFlowBreak(tb, true);
+                                pnlSetting.SetFlowBreak(newControl, true);
 
                                 var btn = new Button() { Text = "&Browse" };
                                 pnlSetting.Controls.Add(btn);
-
+                                trackedStuff[setting.Name].OtherControls.Add(btn);
 
 
                                 btn.Click += (s, e) =>
                                 {
                                     var fb = new FolderBrowserDialog();
-                                    fb.SelectedPath = tb.Text;
 
-                                    if (Directory.Exists(tb.Text))
-                                        fb.SelectedPath = tb.Text;
+                                    fb.SelectedPath = (string) newControl.Value();
+
+                                    if (Directory.Exists(newControl.Text))
+                                        fb.SelectedPath = newControl.Text;
 
                                     if (fb.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fb.SelectedPath))
                                     {
-                                        tb.Text = fb.SelectedPath;
+                                        newControl.SetValue(fb.SelectedPath);
                                     }
                                 };
                             }
                             break;
                     }
 
-
-                }
-
-                try
-                {
-
-                    var result = form.ShowDialog();
-
-                    if(result == DialogResult.OK)
+                    if (newControl != null)
                     {
-                        foreach (var setting in selectedSettings)
-                        {
-                            var ss = _settings.Single(_ => _.Name == setting.Name);
-
-                            ss.Value = setting.Value;
-
-                        }
-
-                        await _storage.Save(selectedSettings);
+                        trackedStuff.AddTrackedControl(setting.Name, newControl);
                     }
-                    else
-                    {
-                        Console.WriteLine("User cancelled the form");
-                    }
-
+                    
                 }
-                catch (Exception x)
+
+                RefreshControls(trackedStuff);
+
+                var result = form.ShowDialog();
+
+                if (result == DialogResult.OK)
                 {
-
-                    Console.WriteLine(x.Message);
+                    return trackedStuff.Settings.ToList();
                 }
-
-
+               
+                return null;
 
             }
 
@@ -300,7 +380,7 @@ namespace FormHelper
 
         override public string ToString()
         {
-            return Newtonsoft.Json.JsonConvert.SerializeObject(_settings);
+            return JsonConvert.SerializeObject(_settings);
         }
     }
 }
