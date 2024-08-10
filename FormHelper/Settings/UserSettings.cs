@@ -67,6 +67,11 @@ namespace FormHelper
 
         private IUserSettingStorage _storage;
 
+
+        public delegate void SettingsChangedEventHandler(object sender, List<UserSetting> changed);
+        
+        public event SettingsChangedEventHandler OnSettingsChanged;
+
         public UserSettingsManager(string pluginName)
         {
             
@@ -74,7 +79,7 @@ namespace FormHelper
             _storage = new RegistrySettingsStorage(pluginName);            
         }
 
-        public async Task InitAsync(IEnumerable<UserSetting> defaultSettings, CancellationToken cancellationToken = default)
+        public async Task LoadAsync(IEnumerable<UserSetting> defaultSettings, CancellationToken cancellationToken = default)
         {
             
 
@@ -91,24 +96,7 @@ namespace FormHelper
 
             _settings = defaultSettings.ToList();
 
-            var newSettings = ShowForm(defaultSettings.Select(s => s.Name));
-
-            if (newSettings != null)
-            {
-                foreach (var setting in newSettings)
-                {
-                    var ss = _settings.Single(_ => _.Name == setting.Name);
-                    if(ss.Value?.ToString() != setting.Value?.ToString())
-                        ss.Value = setting.Value;
-
-                }
-
-                await _storage.Save(newSettings);
-            }
-            else
-            {
-                Console.WriteLine("User cancelled the form");
-            }
+            
         }
 
 
@@ -126,7 +114,7 @@ namespace FormHelper
             }
         }
 
-        public List<UserSetting> ShowForm(IEnumerable<string> settings)
+        public async Task ShowFormAsync(IEnumerable<string> settings, CancellationToken cancellationToken = default)
         {
 
             var trackedStuff = new TrackedItemCollection(settings.Select(_ => new TrackedItem { Name = _, Control = null, Setting = _settings.Single(s => s.Name == _).Clone() }));
@@ -358,14 +346,42 @@ namespace FormHelper
 
                 RefreshControls(trackedStuff);
 
-                var result = form.ShowDialog();
+                var result = await Task.Run(()=> form.ShowDialog(), cancellationToken).ConfigureAwait(false);
 
+                
                 if (result == DialogResult.OK)
                 {
-                    return trackedStuff.Settings.ToList();
+                    List<UserSetting> newSettings = trackedStuff.Settings.ToList();
+
+                    
+                    if (newSettings != null)
+                    {
+                        var changed = (from n in newSettings
+                        join o in _settings on n.Name equals o.Name
+                        where n.Value?.ToString() != o.Value?.ToString()
+                        select (o,n)).ToList();
+                        
+                        
+                        foreach (var (oldSetting,newSetting) in changed)
+                        {                            
+                            Console.WriteLine($"{oldSetting.Name} changed from {oldSetting.Value} to {newSetting.Value}");
+                            oldSetting.Value = newSetting.Value;
+                        }
+
+                        if (changed.Any())
+                        {
+                            OnSettingsChanged?.Invoke(this, changed.Select(_=>_.n).ToList());
+                        }
+
+                        await _storage.Save(changed.Select(_ => _.n));
+                    }
+                    else
+                    {
+                        Console.WriteLine("User cancelled the form");
+                    }
                 }
                
-                return null;
+                
 
             }
 

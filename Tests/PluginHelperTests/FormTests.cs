@@ -15,63 +15,68 @@ namespace PluginHelperTests
         {
             // Arrange
             var pluginName = "TestPlugin";
-            var settings = new List<UserSetting>();
-            
-            settings.Add(new UserSetting
+            var defaultSettings = new List<UserSetting>
             {
-                DisplayName = "Udp Forwarding",
-                Name = "forwardingEnabled",
-                SettingType = SettingType.Bool,
-                Value = false
-            });
-            settings.Add(new UserSetting
-            {
-                DisplayName = $"Udp Forwarding Port",
-                Name = "forwardingPort",
-                SettingType = SettingType.String,
-                Value = null,
-                ValidationRegex = @"\d{1,5}",
-                ValidationEnabledWhen = new Dictionary<string, string> { 
-                    { "forwardingEnabled", "true" } 
+                new UserSetting
+                {
+                    DisplayName = "Udp Forwarding",
+                    Name = "forwardingEnabled",
+                    SettingType = SettingType.Bool,
+                    Value = false
                 },
-                EnabledWhen = new Dictionary<string, string> { 
-                    { "forwardingEnabled", "true" } 
+                new UserSetting
+                {
+                    DisplayName = $"Udp Forwarding Port",
+                    Name = "forwardingPort",
+                    SettingType = SettingType.String,
+                    Value = null,
+                    ValidationRegex = @"\d{1,5}",
+                    ValidationEnabledWhen = new Dictionary<string, string> {
+                    { "forwardingEnabled", "true" }
+                },
+                    EnabledWhen = new Dictionary<string, string> {
+                    { "forwardingEnabled", "true" }
                 }
-            });
+                },
+                new UserSetting
+                {
+                    DisplayName = $"IP Address",
+                    Name = "ip",
+                    SettingType = SettingType.String,
+                    Value = "255.255.255.255",
+                    ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
 
-            settings.Add(new UserSetting
-            {
-                DisplayName = $"IP Address",
-                Name = "ip",
-                SettingType = SettingType.String,
-                Value = "255.255.255.255",
-                ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
-
-            });
-
-            settings.Add(new UserSetting
-            {
-                DisplayName = "Game Folder",
-                Name = "gamefolder",
-                SettingType = SettingType.Directory,
-                Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
-                EnabledWhen = new Dictionary<string, string> { 
-                    { "forwardingEnabled", "true" } 
+                },
+                new UserSetting
+                {
+                    DisplayName = "Game Folder",
+                    Name = "gamefolder",
+                    SettingType = SettingType.Directory,
+                    Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
+                    EnabledWhen = new Dictionary<string, string> {
+                    { "forwardingEnabled", "true" }
                 }
-            });
+                }
+            };
 
 
             var userSettingsManager = new UserSettingsManager(pluginName);
 
             // Act
-            await userSettingsManager.InitAsync(settings);
+            await userSettingsManager.LoadAsync(defaultSettings);
+            
+            
 
-            var val = userSettingsManager.Get<string>("TestSetting");
+            userSettingsManager.OnSettingsChanged += (s, e) =>
+            {
+                var val = userSettingsManager.Get<string>("ip");
+                // Assert
+                Assert.IsNotNull(val);
+            };
 
 
-            // Assert
-            Assert.IsNotNull(val);
-            Assert.AreNotEqual("Test Value", val);
+            await userSettingsManager.ShowFormAsync(defaultSettings.Select(_ => _.Name).ToList());
+            
 
         }
     }
