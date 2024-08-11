@@ -241,13 +241,6 @@ namespace FormHelper
 
                             newControl = CreateControl<TextBox>(setting, string.Empty);
 
-                            //newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
-                            //newControl.TextChanged += Control_ValueChanged;
-                               
-
-                            //newControl.SetValue(setting.Value);
-                            //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                                
                             pnlSetting.Controls.Add(newControl);
 
                             pnlSetting.SetFlowBreak(newControl, true);
@@ -269,7 +262,7 @@ namespace FormHelper
 
                                     if (ofd.ShowDialog() == DialogResult.OK)
                                     {
-                                        newControl.SetValue(ofd.FileName);
+                                        setting.Value = ofd.FileName;
                                     }
 
                                 }
@@ -281,20 +274,7 @@ namespace FormHelper
                                 pnlSetting.Controls.Add(LabelWithTooltip(setting));
                                 newControl = CreateControl<TextBox>(setting, string.Empty);
                                 newControl.Width = pnlSetting.Width - 10;
-                                //newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
-                                //newControl.SetValue(setting.Value?.ToString());
-                                //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                                
 
-                                //newControl.TextChanged += (s, e) => {
-                                //    var textBox1 = (Control)s;
-                                //    Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
-                                //    textBox1.Width = size.Width;
-                                //    textBox1.Height = size.Height;
-                                //};
-                                //Size sz = TextRenderer.MeasureText(newControl.Text, newControl.Font);
-                                //newControl.Width = sz.Width;
-                                //newControl.Height = sz.Height;
 
                                 pnlSetting.Controls.Add(newControl);
 
@@ -317,7 +297,7 @@ namespace FormHelper
 
                                         if (fb.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fb.SelectedPath))
                                         {
-                                            newControl.SetValue(fb.SelectedPath);
+                                            setting.Value = fb.SelectedPath;
                                         }
                                     }
                                 };

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 
 
@@ -25,8 +26,19 @@ namespace FormHelper
     //    return source.Select((item, index) => (item, index));
     //}
     [DebuggerDisplay("{Name}( {SettingType}) = {Value}")]
-    public class UserSetting
+    public class UserSetting : INotifyPropertyChanged
     {
+        private object _value;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+
+
         public string DisplayName { get; set; }
 
         public string Name { get; set; }
@@ -41,7 +53,18 @@ namespace FormHelper
         public string ValidationRegex { get; set; }
 
 
-        public object Value { get; set; }
+        public object Value
+        {
+            get => _value; 
+            set
+            {
+                if(_value != value)
+                {
+                    _value = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public string Description { get; set; }
 
