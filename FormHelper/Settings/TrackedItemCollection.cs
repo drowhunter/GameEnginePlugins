@@ -17,6 +17,13 @@ namespace FormHelper
         public UserSetting Setting { get; set; }
 
         public List<Control> OtherControls = new List<Control>();
+
+        public void Deconstruct(out (string name, Control control, UserSetting setting, List<Control> other) o)
+        {
+            o = (Name, Control, Setting, OtherControls);
+        }
+
+
     }
 
     

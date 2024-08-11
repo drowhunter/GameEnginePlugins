@@ -1,4 +1,6 @@
-﻿using GT7Plugin.Properties;
+﻿using FormHelper;
+
+using GT7Plugin.Properties;
 
 using PDTools.SimulatorInterface;
 
@@ -9,7 +11,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
-using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
@@ -36,12 +37,9 @@ namespace YawVR_Game_Engine.Plugin
         private Vector3 _previous_local_velocity = new Vector3(0, 0, 0);
 
 
-        private List<UserSetting> userSettings = new List<UserSetting> {
-            new UserSetting { Name = "IP Address", DisplayName = "IP Address", SettingType = SettingType.String, Value = "255.255.255.255" }
-            //new UserSetting { Name = "Port", DisplayName = "Port", SettingType = SettingType.Number, Value = 33740 }
-        };
+       
 
-        private UserSettingsManager _userSettingsManager;
+        private UserSettingsManager<RegistrySettingsStorage> _settings;
         
         public int STEAM_ID => 0;
 
@@ -76,6 +74,11 @@ namespace YawVR_Game_Engine.Plugin
           "IsPaused",
           "Loading"
         };
+
+        public GT7Plugin()
+        {
+            _settings = new UserSettingsManager<RegistrySettingsStorage>(this.GetType().Name);
+        }
 
         public LedEffect DefaultLED()
         {
@@ -126,38 +129,44 @@ namespace YawVR_Game_Engine.Plugin
         {
             this._running = true;
             _cts = new CancellationTokenSource();
+                        
+
+            await _settings.LoadAsync(defaultSettings, _cts.Token);
+
+            await _settings.ShowFormAsync(cancellationToken: _cts.Token);
 
 
-            _userSettingsManager = new UserSettingsManager(this.GetType().Name);
-            await _userSettingsManager.InitAsync(userSettings, _cts.Token);
-            
+            Task listenTask = Task.CompletedTask;
+            //"192.168.50.164";
 
-            // Cancel token from outside source to end simulator
-            udpServer = new UdpServer(SimulatorInterfaceClient.ReceivePortGT7);
-
-            var simInterface = new SimulatorInterfaceClient("192.168.50.164", SimulatorInterfaceGameType.GT7);
+            var simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip") , SimulatorInterfaceGameType.GT7);
             simInterface.OnReceive += SimInterface_OnReceive;
-            
-            simInterface.OnRawData += async (data) =>
+
+            if (_settings.Get<bool>("forwardingEnabled"))
             {
-                if (udpServer?.ClientConnected == true)
+                udpServer = new UdpServer(SimulatorInterfaceClient.ReceivePortGT7);
+
+                simInterface.OnRawData += async (data) =>
                 {
-                    await udpServer.SendAsync(data, 33741);
-                }
-            };
+                    if (udpServer?.ClientConnected == true)
+                    {
+                        int fwdPort = _settings.Get<int>("forwardingPort");
+                        await udpServer.SendAsync(data, fwdPort);
+                    }
+                };
 
-
+                listenTask = udpServer.StartListenerAsync(_cts.Token);
+            }
             
             
 
             var task = simInterface.Start(_cts.Token);
-            var taskf = udpServer.StartListenerAsync(_cts.Token);
+            
 
             try
             {
-                //Task.WaitAll(new Task[] { task, taskf });
-                await Task.WhenAll(task, taskf);    
-                //await task;
+                await Task.WhenAll(task, listenTask).ConfigureAwait(false);    
+                
             }
             catch (OperationCanceledException e)
             {
@@ -273,7 +282,39 @@ namespace YawVR_Game_Engine.Plugin
             
         }
 
-        
+        List<UserSetting> defaultSettings = new List<UserSetting>
+        {
+            new UserSetting
+            {
+                DisplayName = "Udp Forwarding",
+                Name = "forwardingEnabled",
+                Description = "Enable UDP Forwarding",
+                SettingType = SettingType.Bool,
+                Value = false
+            },
+            new UserSetting
+            {
+                DisplayName = $"Udp Forwarding Port",
+                Name = "forwardingPort",
+                Description = "Port to forward UDP packets to.",
+                SettingType = SettingType.String,
+                Value = null,
+                ValidationRegex = @"\d{1,5}",
+                ValidationEnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } },
+                EnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } }
+
+            },
+            new UserSetting
+            {
+                DisplayName = $"Console IP Address",
+                Name = "ip",
+                Description = "IP Address of the Playstation. (use 255.255.255.255 for auto discovery)",
+                SettingType = SettingType.String,
+                Value = "255.255.255.255",
+                ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
+
+            }
+        };
     }
 
     

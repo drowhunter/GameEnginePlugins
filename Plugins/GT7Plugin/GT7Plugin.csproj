@@ -58,6 +58,10 @@
       <Project>{90932698-9263-4457-b0de-72a095e84f14}</Project>
       <Name>PDTools.SimulatorInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\FormHelper\FormHelper.csproj">
+      <Project>{E78C493E-B05C-45ED-AEC3-F02E17C2F369}</Project>
+      <Name>FormHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
       <Project>{1d53fce9-bfbd-475a-8079-c5ba1b98313c}</Project>
       <Name>PluginHelper</Name>

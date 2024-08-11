@@ -12,8 +12,9 @@ namespace FormHelper
     public enum SettingType
     {
         String,
-        //IPAddress,
-        //Number,
+        IPAddress,
+        NetworkPort,
+        Number,
         Bool,
         File,
         Directory
@@ -32,16 +33,22 @@ namespace FormHelper
 
         public SettingType SettingType { get; set; }
 
+        /// <summary>
+        /// Enable Validation for this setting, ,will validate based on the SettingType
+        /// </summary>
+        public bool ValidationEnabled { get; set; }
+
+        public string ValidationRegex { get; set; }
+
+
         public object Value { get; set; }
 
         public string Description { get; set; }
 
-        public string ValidationRegex { get; set; }
-
         public Dictionary<string, string> ValidationEnabledWhen { get; set; } = new Dictionary<string, string>();
 
         public Dictionary<string, string> EnabledWhen { get; set; } = new Dictionary<string, string>();
-        public string ErrorMessage { get; set; }
+        
 
         public UserSetting Clone()
         {

@@ -45,46 +45,45 @@ namespace PluginHelperTests
         }
 
         List<UserSetting> defaultSettings = new List<UserSetting>
+        {
+            new UserSetting
             {
-                new UserSetting
-                {
-                    DisplayName = "Udp Forwarding",
-                    Name = "forwardingEnabled",
-                    SettingType = SettingType.Bool,
-                    Value = false
-                },
-                new UserSetting
-                {
-                    DisplayName = $"Udp Forwarding Port",
-                    Name = "forwardingPort",
-                    SettingType = SettingType.String,
-                    Value = null,
-                    ValidationRegex = @"\d{1,5}",
-                    ValidationEnabledWhen = new Dictionary<string, string> {
-                    { "forwardingEnabled", "true" }
-                },
-                    EnabledWhen = new Dictionary<string, string> {
-                    { "forwardingEnabled", "true" }
-                }
-                },
-                new UserSetting
-                {
-                    DisplayName = $"IP Address",
-                    Name = "ip",
-                    SettingType = SettingType.String,
-                    Value = "255.255.255.255",
-                    ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
+                DisplayName = "Udp Forwarding",
+                Name = "forwardingEnabled",
+                Description = "Enable UDP Forwarding",
+                SettingType = SettingType.Bool,
+                Value = false
+            },
+            new UserSetting
+            {
+                DisplayName = $"Udp Forwarding Port",
+                Name = "forwardingPort",
+                Description = "Port to forward UDP packets to.",
+                SettingType = SettingType.NetworkPort,
+                Value = null,
+                ValidationEnabled = true,
+                ValidationEnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } },
+                EnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } }
 
-                },
-                new UserSetting
-                {
-                    DisplayName = "Game Folder",
-                    Name = "gamefolder",
-                    SettingType = SettingType.Directory,
-                    Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
-                    EnabledWhen = new Dictionary<string, string> {{ "forwardingEnabled", "true" }},
-                    ErrorMessage = "Game folder does not exist"
-                }
-            };
+            },
+            new UserSetting
+            {
+                DisplayName = $"Console IP Address",
+                Name = "ip",
+                Description = "IP Address of the Playstation. (use 255.255.255.255 for auto discovery)",
+                SettingType = SettingType.IPAddress,
+                Value = "255.255.255.255",
+                ValidationEnabled = true,
+            },
+            new UserSetting
+            {
+                DisplayName = "Game Folder",
+                Name = "gamefolder",
+                Description = "Path to the game folder",
+                SettingType = SettingType.Directory,
+                Value = @"C:\Program Files (x86)\Steam\Steamlibrary\steamapps\common\Overload",
+                ValidationEnabled = true
+            }
+        };
     }
 }

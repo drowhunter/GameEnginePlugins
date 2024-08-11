@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using FormHelper.Properties;
+
+using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
@@ -77,8 +79,18 @@ namespace FormHelper
             }
         }
 
-        public async Task ShowFormAsync(IEnumerable<string> settings, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Show the settings form
+        /// </summary>
+        /// <param name="settings">the names of the settings to show on the form</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task ShowFormAsync(IEnumerable<string> settings = null, CancellationToken cancellationToken = default)
         {
+            if (settings == null)
+            {
+                settings = _settings.Select(_ => _.Name);
+            }
 
             var trackedStuff = new TrackedItemCollection(settings.Select(_ => new TrackedItem { Name = _, Control = null, Setting = _settings.Single(s => s.Name == _).Clone() }));
             
@@ -91,9 +103,11 @@ namespace FormHelper
 
 
             //Height= settings.Count * 50 + 100,
-            using (Form form = new Form() { Anchor = AnchorStyles.None, Width = 400, Height = 400, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowOnly,   Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable  })
+            using (Form form = new Form() { Anchor = AnchorStyles.None, Width = 500, Height = 400, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowOnly,   Text = "Settings for " + _pluginName, FormBorderStyle = FormBorderStyle.Sizable  })
             {
-                var fv = new FormValidation(form);
+                var err = new ErrorProvider();
+                err.ContainerControl = form;
+
                 var requiresValidation = new List<Control>();
 
                 #region Validation
@@ -102,11 +116,14 @@ namespace FormHelper
                     if (form.DialogResult == DialogResult.OK)
                     {
 
-                        var settingsThatRequireValidation = trackedStuff.Settings.Where(_ => requiresValidation.Any(c => c.Name == _.Name)).ToList();
+                        var itemsRequiringValidation = trackedStuff.Where(_ => _.Setting.ValidationEnabled && _.Setting.Name == _.Name).ToList();
 
-                        foreach (var setting in settingsThatRequireValidation)
+                        foreach (var itm in itemsRequiringValidation)
                         {
-                            var ctl = requiresValidation.Find(_ => _.Name == setting.Name); 
+                            var ctl = itm.Control;
+                            var setting = itm.Setting;
+
+                            //var ctl = requiresValidation.Find(_ => _.Name == setting.Name); 
                             
                             if (ctl != null && ctl.Enabled)
                             {
@@ -121,19 +138,25 @@ namespace FormHelper
 
                                         var (rgx, cntl) = _;
 
-                                        var m = Regex.IsMatch(cntl.Value() + "", rgx, RegexOptions.IgnoreCase);
-                                        return m;
+                                        return Regex.IsMatch(cntl.Value() + "", rgx, RegexOptions.IgnoreCase);
                                     });
 
                                 }
 
                                 if (mustValidate)
                                 {
-
-                                    if(!fv.Validate(ctl, e, setting.ValidationRegex, setting.ErrorMessage))
+                                    try
                                     {
+                                        Validator.Validate(setting, ctl.Value());
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        err.SetError(ctl, ex.Message);
+                                        e.Cancel = true;
                                         break;
                                     }
+                                    
+                                    
 
                                 }
                             }
@@ -187,92 +210,91 @@ namespace FormHelper
                     
                     switch (setting.SettingType)
                     {
-                        case SettingType.String:
-                        //case SettingType.Number:
-                            {
-                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = ContentAlignment.MiddleLeft });
+                        case SettingType.String: 
+                        case SettingType.Number:
+                        case SettingType.IPAddress:
+                        case SettingType.NetworkPort:
+                        {
+                            pnlSetting.Controls.Add(LabelWithTooltip(setting));
 
-                                newControl = new TextBox() { Name = setting.Name };
-                                newControl.SetValue(setting.Value?.ToString());
-                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));                               
-
-                                if(setting.ValidationRegex != null)
-                                {
-                                    requiresValidation.Add(newControl);
-                                }
-                                
-                                pnlSetting.Controls.Add(newControl);
-
-                            }
-                            break;
+                            newControl = CreateControl<TextBox>(setting, string.Empty);
+                            pnlSetting.Controls.Add(newControl);
+                        }
+                        break;
                         
                         case SettingType.Bool:
-                            {
-                                pnlSetting.Controls.Add(new Label() { Text = setting.DisplayName, TextAlign = System.Drawing.ContentAlignment.MiddleLeft });
+                        {
+                            pnlSetting.Controls.Add(LabelWithTooltip(setting));
 
-                                newControl = new CheckBox() { Name = setting.Name };
-                                newControl.SetValue(setting.Value ?? false);
-                                if(setting.ValidationRegex != null)
-                                {
-                                    requiresValidation.Add(newControl);
-                                }
-
-                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                                pnlSetting.Controls.Add(newControl);
-                            }
-                            break;
+                            //newControl = new CheckBox() { Name = setting.Name };
+                            //newControl.SetValue(setting.Value ?? false);
+                            //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                            //((CheckBox)newControl).CheckedChanged += Control_ValueChanged;
+                            newControl = CreateControl<CheckBox>(setting, false);
+                                
+                            pnlSetting.Controls.Add(newControl);
+                        }
+                        break;
                         case SettingType.File:
-                            {
-                                newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
-                                newControl.SetValue(setting.Value);
-                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                                //tb.Validating += fv.FileExists;
-                                
-                               requiresValidation.Add(newControl);
-                                
+                        {
+                            pnlSetting.Controls.Add(LabelWithTooltip(setting));
+
+                            newControl = CreateControl<TextBox>(setting, string.Empty);
+
+                            //newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
+                            //newControl.TextChanged += Control_ValueChanged;
                                
-                                pnlSetting.Controls.Add(newControl);
 
-                                pnlSetting.SetFlowBreak(newControl, true);
+                            //newControl.SetValue(setting.Value);
+                            //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                                
+                            pnlSetting.Controls.Add(newControl);
 
-                                var btn = new Button() { Text = "&Browse" };
-                                pnlSetting.Controls.Add(btn);
+                            pnlSetting.SetFlowBreak(newControl, true);
 
-                                trackedStuff[setting.Name].OtherControls.Add(btn);
+                            var btn = new Button() { Text = "&Browse" };
+                            pnlSetting.Controls.Add(btn);
 
-                                btn.Click += (s, e) => {
-                                    var ofd = new OpenFileDialog();
+                            trackedStuff[setting.Name].OtherControls.Add(btn);
+
+                            btn.Click += (s, e) => {
+                                using (var ofd = new OpenFileDialog())
+                                {
                                     ofd.FileName = newControl.Value<string>();
                                     ofd.CheckFileExists = true;
 
                                     if (File.Exists(ofd.FileName))
                                         ofd.InitialDirectory = Path.GetDirectoryName(ofd.FileName);
-                                    
-                                    
+
+
                                     if (ofd.ShowDialog() == DialogResult.OK)
                                     {
                                         newControl.SetValue(ofd.FileName);
                                     }
-                                };
-                            }
-                            break;
+
+                                }
+                            };
+                        }
+                        break;
                         case SettingType.Directory:
                             {
-                                newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
-                                newControl.SetValue(setting.Value?.ToString());
-                                newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                                //tb.Validating += fv.FolderExists;
-                                requiresValidation.Add(newControl);
+                                pnlSetting.Controls.Add(LabelWithTooltip(setting));
+                                newControl = CreateControl<TextBox>(setting, string.Empty);
+                                newControl.Width = pnlSetting.Width - 10;
+                                //newControl = new TextBox() { Name = setting.Name, Enabled = false, Width = pnlSetting.Width - 10 };
+                                //newControl.SetValue(setting.Value?.ToString());
+                                //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                                
 
-                                newControl.TextChanged += (s, e) => {
-                                    var textBox1 = (Control)s;
-                                    Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
-                                    textBox1.Width = size.Width;
-                                    textBox1.Height = size.Height;
-                                };
-                                Size sz = TextRenderer.MeasureText(newControl.Text, newControl.Font);
-                                newControl.Width = sz.Width;
-                                newControl.Height = sz.Height;
+                                //newControl.TextChanged += (s, e) => {
+                                //    var textBox1 = (Control)s;
+                                //    Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
+                                //    textBox1.Width = size.Width;
+                                //    textBox1.Height = size.Height;
+                                //};
+                                //Size sz = TextRenderer.MeasureText(newControl.Text, newControl.Font);
+                                //newControl.Width = sz.Width;
+                                //newControl.Height = sz.Height;
 
                                 pnlSetting.Controls.Add(newControl);
 
@@ -285,16 +307,18 @@ namespace FormHelper
 
                                 btn.Click += (s, e) =>
                                 {
-                                    var fb = new FolderBrowserDialog();
-
-                                    fb.SelectedPath = (string) newControl.Value();
-
-                                    if (Directory.Exists(newControl.Text))
-                                        fb.SelectedPath = newControl.Text;
-
-                                    if (fb.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fb.SelectedPath))
+                                    using (var fb = new FolderBrowserDialog())
                                     {
-                                        newControl.SetValue(fb.SelectedPath);
+
+                                        fb.SelectedPath = (string)newControl.Value();
+
+                                        if (Directory.Exists(newControl.Text))
+                                            fb.SelectedPath = newControl.Text;
+
+                                        if (fb.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fb.SelectedPath))
+                                        {
+                                            newControl.SetValue(fb.SelectedPath);
+                                        }
                                     }
                                 };
                             }
@@ -303,6 +327,20 @@ namespace FormHelper
 
                     if (newControl != null)
                     {
+                        newControl.EnabledChanged += (s, e) => {
+                          var ctl = (Control)s;
+                            if(ctl.Enabled)
+                            {
+                                ctl.BackColor = Color.White;
+                                ctl.ForeColor = Color.Black;
+                            }
+                            else
+                            {
+                                ctl.ForeColor = Color.LightGray;
+                                ctl.BackColor = Color.DarkGray;
+                            }
+                        };
+                        
                         trackedStuff.AddTrackedControl(setting.Name, newControl);
                     }
                     
@@ -310,7 +348,7 @@ namespace FormHelper
 
                 RefreshControls(trackedStuff);
 
-                var result = await Task.Run(()=> form.ShowDialog(), cancellationToken).ConfigureAwait(false);
+                var result = form.ShowDialog();
 
                 
                 if (result == DialogResult.OK)
@@ -351,6 +389,58 @@ namespace FormHelper
 
             
         }
+
+        private void Control_ValueChanged(object sender, EventArgs e)
+        {
+            var textBox1 = (Control)sender;
+            if (sender is TextBox)
+            { 
+                Size size = TextRenderer.MeasureText(textBox1.Text, textBox1.Font);
+                textBox1.Width = size.Width;
+                textBox1.Height = size.Height;
+            }
+        }
+
+        private Label LabelWithTooltip(UserSetting setting)
+        {
+            var lbl = new Label() { Text = setting.DisplayName, TextAlign = ContentAlignment.MiddleLeft };
+            AddTooltip(lbl, setting.Description);
+            return lbl;
+        }
+
+        private T CreateControl<T>(UserSetting setting, object defaultvalue) where T:Control, new()
+        {
+            var tb = new T() { Name = setting.Name };
+            tb.SetValue(setting.Value ?? defaultvalue);
+            tb.DataBindings.Add(tb.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+            //tb.TextChanged += Control_ValueChanged;
+
+            tb.GetType().GetEvent(tb.GetNameOfChangedProperty()).AddEventHandler(tb, new EventHandler(Control_ValueChanged));
+            
+
+            return tb;
+        }
+        private void AddTooltip(Control ctl, string text)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var tooltip = new ToolTip() { ToolTipTitle = "Info", ToolTipIcon = ToolTipIcon.Info, ShowAlways = true };
+                tooltip.SetToolTip(ctl, text);
+            }
+        }
+
+
+
+
+        public object this[string name]
+        {
+            get
+            {
+                return _settings.FirstOrDefault(s => s.Name == name)?.Value;
+            }
+        }
+
+
 
         public T Get<T>(string name)
         {
