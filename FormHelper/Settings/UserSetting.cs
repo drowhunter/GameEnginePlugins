@@ -77,5 +77,7 @@ namespace FormHelper
         {
             return JsonConvert.DeserializeObject<UserSetting>(JsonConvert.SerializeObject(this));
         }
+
+        
     }
 }

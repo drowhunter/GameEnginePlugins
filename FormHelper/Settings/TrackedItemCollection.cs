@@ -82,25 +82,11 @@ namespace FormHelper
             {
                 return this.Single(_ => _.Name == name);
             }
-
-            //set
-            //{
-            //    var idx = this.FindIndex(_ => _.Name == name);
-            //    if (idx >= 0)
-            //    {
-            //        this[idx] = value;
-            //    }
-            //    else
-            //    {
-                        
-            //        this.Add(value);
-            //    }
-            //}
         }
 
-        public IEnumerable<Control> Controls => this.Select(_ => _.Control);
+        public List<Control> Controls => this.Select(_ => _.Control).ToList();
                 
-        public IEnumerable<UserSetting> Settings => this.Select(_ => _.Setting);
+        public List<UserSetting> Settings => this.Select(_ => _.Setting).ToList();
 
         public delegate void ValueChangedHandler (Control sender, EventArgs e);
 

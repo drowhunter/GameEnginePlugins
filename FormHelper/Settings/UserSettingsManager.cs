@@ -12,24 +12,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
-
-
-
 namespace FormHelper
 {
-
-
-
-
-
-    public class UserSettingsManager<TStrorage> where TStrorage : IUserSettingStorage, new()
+    public class UserSettingsManager<TStrorage> where TStrorage : IUserSettingStorage
     {
         private string _pluginName;
 
+        private List<UserSetting> _defaultSettings = null;
+
         private List<UserSetting> _settings = null;
 
-        private TStrorage _storage;
+        private SettingsStorage<TStrorage> _storage;
 
 
         public delegate void SettingsChangedEventHandler(object sender, List<UserSetting> changed);
@@ -40,27 +33,17 @@ namespace FormHelper
         {
             
             _pluginName = pluginName;
-            _storage = new TStrorage();  
-            _storage.PluginName = pluginName;
+            _storage = new SettingsStorage<TStrorage>(pluginName);            
         }
 
         public async Task LoadAsync(IEnumerable<UserSetting> defaultSettings, CancellationToken cancellationToken = default)
         {
+            _defaultSettings = defaultSettings.ToList();
+
+            _settings = defaultSettings.Select(_ => _.Clone()).ToList();
+            var changed = await _storage.LoadAsync(_settings, cancellationToken);
             
-
-            var settings = ( await _storage.LoadAsync()).ToList();
-
-            foreach (var s in settings)
-            {
-                var ds = defaultSettings.SingleOrDefault(_ => _.Name == s.Name);
-
-                if (ds != null) { 
-                    ds.Value = s.Value;
-                }
-            }
-
-            _settings = defaultSettings.ToList();
-
+            await _storage.SaveAsync(_settings, true, cancellationToken);
             
         }
 
@@ -79,17 +62,30 @@ namespace FormHelper
             }
         }
 
+        public Task ResetToDefaults(List<UserSetting> settings, CancellationToken cancellationToken = default)
+        {
+            (from n in settings
+             join o in _defaultSettings on n.Name equals o.Name
+             where n.Value?.ToString() != o.Value?.ToString()
+             select (o, n)).ToList().ForEach(_ => _.n.Value = _.o.Value);
+
+
+            
+            return Task.CompletedTask;
+        }
+
+
         /// <summary>
         /// Show the settings form
         /// </summary>
         /// <param name="settings">the names of the settings to show on the form</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ShowFormAsync(IEnumerable<string> settings = null, CancellationToken cancellationToken = default)
+        public async Task ShowFormAsync(List<string> settings = null, CancellationToken cancellationToken = default)
         {
             if (settings == null)
             {
-                settings = _settings.Select(_ => _.Name);
+                settings = _settings.Select(_ => _.Name).ToList();
             }
 
             var trackedStuff = new TrackedItemCollection(settings.Select(_ => new TrackedItem { Name = _, Control = null, Setting = _settings.Single(s => s.Name == _).Clone() }));
@@ -175,21 +171,23 @@ namespace FormHelper
 
 
                 
-
-                var save    = new Button()  { Text = "&OK"  ,  Top = form.Bottom - 80,  Anchor = AnchorStyles.None , DialogResult = DialogResult.OK };               
-                save.Left = form.Width / 2 - save.Width / 2;
-
-                save.Click += (s, e) => form.Close();
                 
+
+                var save    = new Button()  { Text = "&Save"  ,  Top = form.Bottom - 80,  Anchor = AnchorStyles.None , DialogResult = DialogResult.OK };               
+                save.Left = form.Width / 2 - save.Width ;
+                save.Click += (s, e) => form.Close();
                 gb.Controls.Add(save);
 
+                var reset= new Button() { Text = "&Reset", Top = form.Bottom - 80, Anchor = AnchorStyles.None, DialogResult = DialogResult.None };
+                reset.Left = form.Width / 2 + 20;//- reset.Width / 2;
+                reset.Click += (s, e) => ResetToDefaults(trackedStuff.Settings);
+                gb.Controls.Add(reset);
 
                 
 
-
-                foreach (var (setting,i)  in trackedStuff.Settings.WithIndex())
+                for (var i=0;i < trackedStuff.Settings.Count; i++)
                 {
-                    
+                    var setting = trackedStuff.Settings[i];
                     var pnlSetting = new FlowLayoutPanel() { 
                         FlowDirection = FlowDirection.LeftToRight, 
                         Dock = DockStyle.Top, 
@@ -216,7 +214,6 @@ namespace FormHelper
                         case SettingType.NetworkPort:
                         {
                             pnlSetting.Controls.Add(LabelWithTooltip(setting));
-
                             newControl = CreateControl<TextBox>(setting, string.Empty);
                             pnlSetting.Controls.Add(newControl);
                         }
@@ -225,24 +222,15 @@ namespace FormHelper
                         case SettingType.Bool:
                         {
                             pnlSetting.Controls.Add(LabelWithTooltip(setting));
-
-                            //newControl = new CheckBox() { Name = setting.Name };
-                            //newControl.SetValue(setting.Value ?? false);
-                            //newControl.DataBindings.Add(newControl.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-                            //((CheckBox)newControl).CheckedChanged += Control_ValueChanged;
-                            newControl = CreateControl<CheckBox>(setting, false);
-                                
+                            newControl = CreateControl<CheckBox>(setting, false);                                
                             pnlSetting.Controls.Add(newControl);
                         }
                         break;
                         case SettingType.File:
                         {
                             pnlSetting.Controls.Add(LabelWithTooltip(setting));
-
                             newControl = CreateControl<TextBox>(setting, string.Empty);
-
                             pnlSetting.Controls.Add(newControl);
-
                             pnlSetting.SetFlowBreak(newControl, true);
 
                             var btn = new Button() { Text = "&Browse" };
@@ -333,13 +321,11 @@ namespace FormHelper
                 
                 if (result == DialogResult.OK)
                 {
-                    List<UserSetting> newSettings = trackedStuff.Settings.ToList();
-
                     
-                    if (newSettings != null)
+                    if (trackedStuff.Settings.Any())
                     {
-                        var changed = (from n in newSettings
-                        join o in _settings on n.Name equals o.Name
+                        var changed = (from n in trackedStuff.Settings
+                                       join o in _settings on n.Name equals o.Name
                         where n.Value?.ToString() != o.Value?.ToString()
                         select (o,n)).ToList();
                         
@@ -350,20 +336,24 @@ namespace FormHelper
                             oldSetting.Value = newSetting.Value;
                         }
 
+                        await _storage.SaveAsync(_settings, cancellationToken: cancellationToken);
+
                         if (changed.Any())
                         {
                             OnSettingsChanged?.Invoke(this, changed.Select(_=>_.n).ToList());
                         }
-
-                        await _storage.SaveAsync(changed.Select(_ => _.n));
+                        
                     }
                     else
                     {
-                        Console.WriteLine("User cancelled the form");
+                        Console.WriteLine("No changes");
                     }
                 }
-               
-                
+                else
+                {
+                    Console.WriteLine("User cancelled the form");
+                }
+
 
             }
 
@@ -400,6 +390,9 @@ namespace FormHelper
 
             return tb;
         }
+
+        
+
         private void AddTooltip(Control ctl, string text)
         {
             if (!string.IsNullOrWhiteSpace(text))

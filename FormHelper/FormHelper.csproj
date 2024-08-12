@@ -55,7 +55,8 @@
     <Compile Include="SettingsForm.cs" />
     <Compile Include="Settings\UserSetting.cs" />
     <Compile Include="Storage\IUserSettingStorage.cs" />
-    <Compile Include="Storage\RegistrySettingsStorage.cs" />
+    <Compile Include="Storage\RegistryStorage.cs" />
+    <Compile Include="Storage\SettingsStorage.cs" />
     <Compile Include="Settings\TrackedItemCollection.cs" />
     <Compile Include="Settings\UserSettingsManager.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

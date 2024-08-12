@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Testing.Extensions.TrxReport.Abstractions;
+using FormHelper.Storage;
 
 namespace PluginHelperTests
 {
@@ -24,7 +25,7 @@ namespace PluginHelperTests
             // Arrange
             var pluginName = "TestPlugin";
 
-            var userSettingsManager = new UserSettingsManager<RegistrySettingsStorage>(pluginName);
+            var userSettingsManager = new UserSettingsManager<RegistryStorage>(pluginName);
 
             // Act
             await userSettingsManager.LoadAsync(defaultSettings);

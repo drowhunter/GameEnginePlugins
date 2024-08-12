@@ -39,7 +39,7 @@ namespace YawVR_Game_Engine.Plugin
 
        
 
-        private UserSettingsManager<RegistrySettingsStorage> _settings;
+        private UserSettingsManager<SettingsStorage> _settings;
         
         public int STEAM_ID => 0;
 
@@ -77,7 +77,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public GT7Plugin()
         {
-            _settings = new UserSettingsManager<RegistrySettingsStorage>(this.GetType().Name);
+            _settings = new UserSettingsManager<SettingsStorage>(this.GetType().Name);
         }
 
         public LedEffect DefaultLED()
