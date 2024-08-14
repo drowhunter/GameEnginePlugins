@@ -24,7 +24,7 @@ using Quaternion = System.Numerics.Quaternion;
 namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
-    [ExportMetadata("Name", "Gran Turismo 7 (0.9.4)")]
+    [ExportMetadata("Name", "Gran Turismo 7")]
     [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
@@ -141,7 +141,15 @@ namespace YawVR_Game_Engine.Plugin
             Task listenTask = Task.CompletedTask;
             //"192.168.50.164";
 
-            var simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip") , SimulatorInterfaceGameType.GT7);
+            var portOverride = _settings.Get<int>("consoleport");
+
+            SimulatorInterfaceClient simInterface;
+
+            if (portOverride == SimulatorInterfaceClient.BindPortGT7)
+                simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip"), SimulatorInterfaceGameType.GT7);
+            else
+                simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip") , SimulatorInterfaceGameType.GT7, portOverride);
+
             simInterface.OnReceive += SimInterface_OnReceive;
 
             if (_settings.Get<bool>("forwardingEnabled"))
@@ -313,6 +321,16 @@ namespace YawVR_Game_Engine.Plugin
                 Description = "IP Address of the Playstation. (use 255.255.255.255 for auto discovery)",
                 SettingType = SettingType.IPAddress,
                 Value = "255.255.255.255",
+                ValidationEnabled = true
+
+            },
+            new UserSetting
+            {
+                DisplayName = $"Console Incoming Port",
+                Name = "consoleport",
+                Description = "The default port for incoming data from the console. (Default: 33740)",
+                SettingType = SettingType.NetworkPort,
+                Value = 33740,
                 ValidationEnabled = true
 
             }
