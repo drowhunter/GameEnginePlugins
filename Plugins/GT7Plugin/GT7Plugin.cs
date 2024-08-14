@@ -1,4 +1,5 @@
 ﻿using FormHelper;
+using FormHelper.Storage;
 
 using GT7Plugin.Properties;
 
@@ -39,7 +40,7 @@ namespace YawVR_Game_Engine.Plugin
 
        
 
-        private UserSettingsManager<SettingsStorage> _settings;
+        private UserSettingsManager<RegistryStorage> _settings;
         
         public int STEAM_ID => 0;
 
@@ -77,7 +78,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public GT7Plugin()
         {
-            _settings = new UserSettingsManager<SettingsStorage>(this.GetType().Name);
+            _settings = new UserSettingsManager<RegistryStorage>(this.GetType().Name);
         }
 
         public LedEffect DefaultLED()
@@ -297,9 +298,9 @@ namespace YawVR_Game_Engine.Plugin
                 DisplayName = $"Udp Forwarding Port",
                 Name = "forwardingPort",
                 Description = "Port to forward UDP packets to.",
-                SettingType = SettingType.String,
-                Value = null,
-                ValidationRegex = @"\d{1,5}",
+                SettingType = SettingType.NetworkPort,
+                Value = 33741,
+                ValidationEnabled = true,
                 ValidationEnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } },
                 EnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } }
 
@@ -309,9 +310,9 @@ namespace YawVR_Game_Engine.Plugin
                 DisplayName = $"Console IP Address",
                 Name = "ip",
                 Description = "IP Address of the Playstation. (use 255.255.255.255 for auto discovery)",
-                SettingType = SettingType.String,
+                SettingType = SettingType.IPAddress,
                 Value = "255.255.255.255",
-                ValidationRegex = @"^(\d{1,3}\.){3}\d{1,3}$"
+                ValidationEnabled = true
 
             }
         };

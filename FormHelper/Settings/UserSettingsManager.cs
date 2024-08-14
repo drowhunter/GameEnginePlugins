@@ -381,12 +381,19 @@ namespace FormHelper
         private T CreateControl<T>(UserSetting setting, object defaultvalue) where T:Control, new()
         {
             var tb = new T() { Name = setting.Name };
-            tb.SetValue(setting.Value ?? defaultvalue);
-            tb.DataBindings.Add(tb.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
-            //tb.TextChanged += Control_ValueChanged;
+            try
+            {
+                tb.SetValue(setting.Value ?? defaultvalue);
+                tb.DataBindings.Add(tb.GetNameOfValueProperty(), setting, nameof(UserSetting.Value));
+                //tb.TextChanged += Control_ValueChanged;
 
-            tb.GetType().GetEvent(tb.GetNameOfChangedProperty()).AddEventHandler(tb, new EventHandler(Control_ValueChanged));
-            
+                tb.GetType().GetEvent(tb.GetNameOfChangedProperty()).AddEventHandler(tb, new EventHandler(Control_ValueChanged));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw new Exception($"Error creating control for {setting.Name}={setting.Value} - {ex.Message}", ex);
+            }
 
             return tb;
         }

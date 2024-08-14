@@ -26,7 +26,14 @@ namespace FormHelper
 
         public static void SetValue(this Control ctl, object value)
         {
-            ctl.GetType().GetProperty(ctl.GetNameOfValueProperty()).SetValue(ctl, value);            
+            var prop = ctl.GetType().GetProperty(ctl.GetNameOfValueProperty());
+
+            if (prop.PropertyType != value.GetType())
+            {
+                value = Convert.ChangeType(value, prop.PropertyType);
+            }
+
+            prop.SetValue(ctl, value);            
         }
 
         public static void Subscribe(this Control ctl, EventHandler handler)
