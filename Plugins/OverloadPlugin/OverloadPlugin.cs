@@ -10,11 +10,11 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Quaternion = System.Numerics.Quaternion;
 using YawGEAPI;
 using PluginHelper;
 using System.Linq;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace YawVR_Game_Engine.Plugin
 {
@@ -38,12 +38,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-        public string Description => @"<font color=""green"">v1.1.1
-    &quot;Usage:<br>
-    1. Install OLMOD <a href=""https://olmod.overloadmaps.com/"">click here</a><br>
-    2. Install GameMod.dll with telemetry into your overload directory (<a href=""https://github.com/drowhunter/olmod/releases/latest"">click here</a>)<br>
-    3. Launch Olmod.exe to start the game ('Telemetry' must appear on the upper right corner of the game's main menu).&quot;;
-</font>";
+        public string Description => ResourceHelper.LoadEmbeddedResourceString("description.html");
 
 
         private Thread readThread;
@@ -244,9 +239,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public void PatchGame()
         {
-            // should add code to download the olmod and extract it to the game folder
-            // just like TheCrew2 plugin does
-
+            
         }
 
         public void SetReferences(IProfileManager controller, IMainFormDispatcher dispatcher)

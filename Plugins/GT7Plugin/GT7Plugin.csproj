@@ -75,6 +75,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Profiles\DefaultProfile.yawgeprofile" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\description.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)ge.targets" />
 </Project>

@@ -50,7 +50,8 @@ namespace YawVR_Game_Engine.Plugin
 
         public string AUTHOR => "Drowhunter";
 
-        public string Description => Resources.description;
+
+        public string Description => ResourceHelper.LoadEmbeddedResourceString("description.html");
 
         public Image Logo => Resources.logo;
 
