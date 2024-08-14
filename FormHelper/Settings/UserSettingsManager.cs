@@ -425,7 +425,8 @@ namespace FormHelper
         public T Get<T>(string name)
         {
             var setting = _settings.FirstOrDefault(s => s.Name == name)?.Value;
-            return (T) setting;
+            var retval = Convert.ChangeType(setting, typeof(T));
+            return (T) retval;
         }
 
         override public string ToString()
