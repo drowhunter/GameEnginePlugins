@@ -48,6 +48,7 @@
     <Compile Include="Maths\WorldVelocity_to_LocalVelocityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FormTests.cs" />
+    <Compile Include="TDUSCPluginTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter">
@@ -68,6 +69,10 @@
     <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
       <Project>{1d53fce9-bfbd-475a-8079-c5ba1b98313c}</Project>
       <Name>PluginHelper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\TDUSCPlugin\TDUSCPlugin.csproj">
+      <Project>{b1a7d5e1-4f6b-4d3a-9f8d-2c8a1e6b5a3f}</Project>
+      <Name>TDUSCPlugin</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

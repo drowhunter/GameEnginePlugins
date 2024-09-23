@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Numerics;
 
 namespace PluginHelper
 {
     public static class Maths
     {
-        const double radtodeg = 180 / Math.PI;
+        const double RAD2DEG = 180 / Math.PI;
 
-        const double degtorad = Math.PI / 180;
+        const double DEG2RAD = Math.PI / 180;
+
+        public const double GRAVITY = 9.8100004196167f;
 
         /// <summary>
         /// Convert Radians to Degrees
@@ -16,12 +19,12 @@ namespace PluginHelper
         /// <returns>degrees</returns>
         public static double ToDegrees(double rad)
         {
-            return rad * radtodeg;
+            return rad * RAD2DEG;
         }
 
         public static float ToDegrees(float rad)
         {
-            return (float)(rad * radtodeg);
+            return (float)(rad * RAD2DEG);
         }
 
         /// <summary>
@@ -31,18 +34,37 @@ namespace PluginHelper
         /// <returns>radians</returns>
         public static double ToRadians(double deg)
         {
-            return deg * degtorad;
+            return deg * DEG2RAD;
         }
 
         public static float ToRadians(float deg)
         {
-            return (float)(deg * degtorad);
+            return (float)(deg * DEG2RAD);
         }
 
 
         public static Quaternion ToQuat(this Vector3 v, float degrees = 0f)
         {
             return VectorToQuaternion(v.X, v.Y, v.Z, degrees);
+        }
+
+        public static Vector3 WorldToLocal2(Vector3 globalVector)
+        {
+            var gn = Vector3.Normalize(globalVector);
+
+            var fwdVec = new Vector3(0, 0, 1);
+
+            Vector3 rotationAxis = Vector3.Cross(gn, fwdVec);
+
+            float angle = (float) (Math.Acos(Vector3.Dot(gn, fwdVec)) * RAD2DEG);
+
+            Quaternion rQ = Quaternion.Normalize(Quaternion.CreateFromAxisAngle(rotationAxis, angle));
+
+
+            //var local_velocity =  (rQ * VectorToQuaternion(globalVector.X, globalVector.Y, globalVector.Z, 0, false)).Vector();
+            var local_velocity = WorldtoLocal(rQ, globalVector);
+            
+            return local_velocity;
         }
 
         public static Quaternion VectorToQuaternion(float x = 0f, float y = 0f, float z = 0f, float angle = 0f, bool angleInDegrees = true)
@@ -199,6 +221,13 @@ namespace PluginHelper
 
             return direction;
         }
+
+
+        public static Vector3 Normalize(this Vector3 v) => Vector3.Normalize(v);
+
+        public static Vector3 Cross(this Vector3 v, Vector3 v2) => Vector3.Cross(v, v2);
+
+        public static float Dot(this Vector3 v, Vector3 v2) => Vector3.Dot(v, v2);
     }
 }
 

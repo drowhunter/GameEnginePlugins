@@ -14,6 +14,7 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,7 +51,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public string AUTHOR => "Drowhunter";
 
-
+        
         public string Description => ResourceHelper.LoadEmbeddedResourceString("description.html");
 
         public Image Logo => Resources.logo;
@@ -267,7 +268,7 @@ namespace YawVR_Game_Engine.Plugin
             var (pitch, yaw,  roll) = Maths.ToEuler(Q, true);
 
 
-            _profileManager.SetInput(0, yaw);
+            _profileManager.SetInput(0, yaw + 180); //adding 180 to align with the game compass
             _profileManager.SetInput(1, pitch);
             _profileManager.SetInput(2, roll);
             _profileManager.SetInput(3, sway);

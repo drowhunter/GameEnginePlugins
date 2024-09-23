@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using PluginHelper;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
 
 namespace PluginHelper.Tests
 {
@@ -27,6 +29,27 @@ namespace PluginHelper.Tests
             Assert.AreEqual(0, result.Z, 0.0001f);
         }
 
+        [TestMethod()]
+        public void WorldToLocal2Test()
+        {
+            Vector3 someVEctor = new Vector3(-1, 0, 0);
+
+
+            var q = Quaternion.Normalize( new Quaternion(someVEctor, 0));
+
+            var l =Maths.WorldtoLocal(q, new Vector3(0,1,1));
+
+
+
+
+            //var localFwd = Maths.WorldToLocal2(someVEctor);
+
+            Assert.IsNotNull(q);
+
+
+
+        }
+
         //[TestMethod()]
         //public void EulerToDirectionTest3()
         //{
@@ -34,9 +57,9 @@ namespace PluginHelper.Tests
 
 
         //    Assert.AreEqual(0, result.Y, 0.0001f);
-            
+
         //    Assert.IsTrue(result.X > 1f);
-            
+
         //}
 
 
