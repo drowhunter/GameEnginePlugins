@@ -10,7 +10,7 @@ namespace PluginHelper
 
         const double DEG2RAD = Math.PI / 180;
 
-        public const double GRAVITY = 9.8100004196167f;
+        public const float GRAVITY = 9.81f;
 
         /// <summary>
         /// Convert Radians to Degrees

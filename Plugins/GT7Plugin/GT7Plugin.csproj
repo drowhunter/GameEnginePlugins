@@ -49,6 +49,7 @@
     <Compile Include="GT7Plugin.cs" />
     <Compile Include="Properties\Resources.cs" DependentUpon="Resources.resx" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UdpListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx" />

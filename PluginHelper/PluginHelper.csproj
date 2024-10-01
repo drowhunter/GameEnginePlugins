@@ -47,7 +47,7 @@
     <Compile Include="Maths.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceHelper.cs" />
-    <Compile Include="UdpServer.cs" />
+    <Compile Include="UdpExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">

@@ -1,6 +1,7 @@
 ﻿using FormHelper;
 using FormHelper.Storage;
 
+using GT7Plugin;
 using GT7Plugin.Properties;
 
 using PDTools.SimulatorInterface;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -29,6 +31,11 @@ namespace YawVR_Game_Engine.Plugin
     [ExportMetadata("Version", "0.9")]
     public class GT7Plugin : Game
     {
+        private const string FORWARDING_ENABLED = "forwardingEnabled";
+        private const string FORWARDING_PORT = "forwardingPort";
+        private const string CONSOLE_IP = "ip";
+        private const string CONSOLE_PORT = "consoleport";
+       
         private volatile bool _running = false;
         private IMainFormDispatcher _dispatcher;
         private IProfileManager _profileManager;
@@ -60,7 +67,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public Image Background => Resources.background;
 
-        private UdpServer udpServer;
+        private UdpListener listenSocket;
 
         private static readonly string[] inputs = new string[]
         {
@@ -142,41 +149,45 @@ namespace YawVR_Game_Engine.Plugin
             Task listenTask = Task.CompletedTask;
             //"192.168.50.164";
 
-            var portOverride = _settings.Get<int>("consoleport");
+            var portOverride = _settings.Get<int>(CONSOLE_PORT);
+            var isDefaultPort = new List<int>() { 
+                SimulatorInterfaceClient.BindPortGT7, 
+                SimulatorInterfaceClient.BindPortDefault 
+            }.Contains(portOverride);
 
-            SimulatorInterfaceClient simInterface;
+            var port = isDefaultPort ? portOverride : (int?)null;
 
-            if (portOverride == SimulatorInterfaceClient.BindPortGT7)
-                simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip"), SimulatorInterfaceGameType.GT7);
-            else
-                simInterface = new SimulatorInterfaceClient(_settings.Get<string>("ip") , SimulatorInterfaceGameType.GT7, portOverride);
+            var simInterface = 
+                new SimulatorInterfaceClient(_settings.Get<string>(CONSOLE_IP), SimulatorInterfaceGameType.GT7, port);
+
 
             simInterface.OnReceive += SimInterface_OnReceive;
 
-            if (_settings.Get<bool>("forwardingEnabled"))
+            if (_settings.Get<bool>(FORWARDING_ENABLED))
             {
-                udpServer = new UdpServer(SimulatorInterfaceClient.ReceivePortGT7);
+                listenSocket = new UdpListener();
+                listenTask = listenSocket.StartListenerAsync(port: SimulatorInterfaceClient.ReceivePortGT7, cancellationToken: _cts.Token);
 
                 simInterface.OnRawData += async (data) =>
                 {
-                    if (udpServer?.ClientConnected == true)
+                    if (listenSocket?.ClientConnected == true)
                     {
-                        int fwdPort = _settings.Get<int>("forwardingPort");
-                        await udpServer.SendAsync(data, fwdPort);
+                        int fwdPort = _settings.Get<int>(FORWARDING_PORT);
+                        var taskk = listenSocket.SendAsync(data, fwdPort).ConfigureAwait(false);
                     }
                 };
 
-                listenTask = udpServer.StartListenerAsync(_cts.Token);
+                
             }
             
             
 
-            var task = simInterface.Start(_cts.Token);
+            var simInterfaceStartedTask = simInterface.Start(_cts.Token);
             
 
             try
             {
-                await Task.WhenAll(task, listenTask).ConfigureAwait(false);    
+                await Task.WhenAll(simInterfaceStartedTask, listenTask).ConfigureAwait(false);    
                 
             }
             catch (OperationCanceledException e)
@@ -298,7 +309,7 @@ namespace YawVR_Game_Engine.Plugin
             new UserSetting
             {
                 DisplayName = "Udp Forwarding",
-                Name = "forwardingEnabled",
+                Name = FORWARDING_ENABLED,
                 Description = "Enable UDP Forwarding",
                 SettingType = SettingType.Bool,
                 Value = false
@@ -306,7 +317,7 @@ namespace YawVR_Game_Engine.Plugin
             new UserSetting
             {
                 DisplayName = $"Udp Forwarding Port",
-                Name = "forwardingPort",
+                Name = FORWARDING_PORT,
                 Description = "Port to forward UDP packets to.",
                 SettingType = SettingType.NetworkPort,
                 Value = 33741,
@@ -318,7 +329,7 @@ namespace YawVR_Game_Engine.Plugin
             new UserSetting
             {
                 DisplayName = $"Console IP Address",
-                Name = "ip",
+                Name = CONSOLE_IP,
                 Description = "IP Address of the Playstation. (use 255.255.255.255 for auto discovery)",
                 SettingType = SettingType.IPAddress,
                 Value = "255.255.255.255",
@@ -328,7 +339,7 @@ namespace YawVR_Game_Engine.Plugin
             new UserSetting
             {
                 DisplayName = $"Console Incoming Port",
-                Name = "consoleport",
+                Name = CONSOLE_PORT,
                 Description = "The default port for incoming data from the console. (Default: 33740)",
                 SettingType = SettingType.NetworkPort,
                 Value = 33740,
