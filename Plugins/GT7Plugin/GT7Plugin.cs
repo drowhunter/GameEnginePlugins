@@ -14,6 +14,7 @@ using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -161,6 +162,7 @@ namespace YawVR_Game_Engine.Plugin
                 new SimulatorInterfaceClient(_settings.Get<string>(CONSOLE_IP), SimulatorInterfaceGameType.GT7, port);
 
 
+            
             simInterface.OnReceive += SimInterface_OnReceive;
 
             if (_settings.Get<bool>(FORWARDING_ENABLED))
