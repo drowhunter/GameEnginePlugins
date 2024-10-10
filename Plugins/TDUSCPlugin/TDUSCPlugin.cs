@@ -67,37 +67,26 @@ namespace YawVR_Game_Engine.Plugin
         {
             _settings = new UserSettingsManager<RegistryStorage>(this.GetType().Name);
             cancellationTokenSource = new CancellationTokenSource();
-
         }
 
 
-        public TDUSCPlugin(IProfileManager controller, IMainFormDispatcher dispatcher)
+        public TDUSCPlugin(IProfileManager controller, IMainFormDispatcher dispatcher) : this()
         {
             this.controller = controller;
-            this.dispatcher = dispatcher;
+            this.dispatcher = dispatcher;           
         }
 
 
         private bool _isStarted = false;
         private bool isStarted
         {
-            get
-            {
-                return _isStarted;
-            }
+            get => _isStarted;            
             set
             {
                 if (_isStarted != value)
                 {
                     _isStarted = value;
-                    if (value)
-                    {
-                        Log("S");
-                    }
-                    else
-                    {
-                        Log("s");
-                    }
+                    Log(value ? "S" : "s");                    
                 }
             }
         }
@@ -105,29 +94,19 @@ namespace YawVR_Game_Engine.Plugin
         private bool _isRunning = false;
         private bool isRunning
         {
-            get
-            {
-                return _isRunning;
-            }
+            get => _isRunning;
             set
             {
                 if (_isRunning != value)
                 {
                     _isRunning = value;
                     if (value)
-                    {
                         stopwatch.Stop();
-                        Log("r");
-                    }
                     else
-                    {
                         stopwatch.Restart();
-                        Log("X");
-                        
-                    }
-                }
-                
                     
+                    Log(value ? "r" : "X");
+                }   
             }
         }
 
@@ -145,34 +124,40 @@ namespace YawVR_Game_Engine.Plugin
         {
             bool error = false;
 
-            await PromptUser().ConfigureAwait(false);
-
-            
+            PromptUser().Wait();           
 
             gameport = _settings.Get<int>(INCOMING_PORT);
 
-            
+            socket = new UdpClient(gameport);
+            socket.Client.ReceiveTimeout = 60000;
 
+            //remoteIP = new IPEndPoint(IPAddress.Loopback, gameport);
+            //socket.Connect(remoteIP);
+            //socket.Send(new byte[3] { 1, 1, 0 }, 3);
+            //socket.Send(new byte[3] { 1, 1, 0 }, 3);
 
             do
             {
                 try
                 {
-                    
+                    await StartForwardingIfRequired(cancellationTokenSource.Token);
 
-                    socket = new UdpClient(gameport);
-                    socket.Client.ReceiveTimeout = 60000;
                     var thread = new Thread(ReadFunction);
+
                     thread.Name = "TDUSC Read Thread";
                     thread.Start();
-
                     isStarted = true;
                     error = false;
+
+                    //await Task.WhenAll(
+                    //    StartForwardingIfRequired(cancellationTokenSource.Token),
+                    //    ReadFunctionAsync(cancellationTokenSource.Token));//.ConfigureAwait(false);
+
+                    Log("Workers released");
                 }
                 catch (SocketException ex)
                 {
                     error = true;
-
                     Log("!");
                 }
                 catch (Exception ex)
@@ -184,32 +169,32 @@ namespace YawVR_Game_Engine.Plugin
             } while (error);
         }
 
-        
-
-
         private async Task StartForwardingIfRequired(CancellationToken cancellationToken = default)
         {
+
             if (_settings.Get<bool>(FORWARDING_ENABLED))
             {
                 forwardingSocket = new UdpClient(_settings.Get<int>(FORWARDING_PORT));
-
-                var listenTask = await forwardingSocket.ReceiveAsync().WithCancellation(cancellationToken);
+                
+                LogLine("Listening on port " + _settings.Get<int>(FORWARDING_PORT));
+                
+                var listenTask = await forwardingSocket.ReceiveAsync(cancellationToken);
                 _clientConnected = true;
 
                 Log(Environment.NewLine + "A Client has connected = " + Environment.NewLine);
-                
-
             }
         }
+
         public async Task PromptUser(CancellationToken cancellationToken = default)
         {
             await _settings.LoadAsync(defaultSettings, cancellationToken);
 
             await _settings.ShowFormAsync(cancellationToken: cancellationToken);
+        }
 
-            
-
-            
+        public Task ReadFunctionAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => ReadFunction(), cancellationToken);
         }
 
         public async void ReadFunction()
@@ -221,7 +206,9 @@ namespace YawVR_Game_Engine.Plugin
                 {
                     if(_lastpacket == null)
                     {
+                        
                         Log("s");
+                        
                     }
                     
 
@@ -248,7 +235,7 @@ namespace YawVR_Game_Engine.Plugin
                     }
                     else
                     {
-                        Log("!");
+                        Log("h");
                         isRunning = false;
                         
                     }
@@ -484,7 +471,7 @@ namespace YawVR_Game_Engine.Plugin
                 Name = FORWARDING_PORT,
                 Description = "Port to forward UDP packets to.",
                 SettingType = SettingType.NetworkPort,
-                Value = 20771,
+                Value = 22888,
                 ValidationEnabled = true,
                 ValidationEnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } },
                 EnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } }
@@ -519,6 +506,7 @@ namespace YawVR_Game_Engine.Plugin
 
         public void Exit()
         {
+            cancellationTokenSource.Cancel();
             isStarted = false;
             isRunning = false;
             Dispose();

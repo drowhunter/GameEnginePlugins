@@ -95,8 +95,8 @@ namespace GT7Plugin
 
                     Console.WriteLine("Waiting for packet ...");
 
-                    var result = await _listenSocket.ReceiveAsync().WithCancellation(cancellationToken);
-
+                    var result = await _listenSocket.ReceiveAsync(cancellationToken);
+                    Console.WriteLine($"r {result.RemoteEndPoint.ToString()}");
                     if (result.Buffer.Length == 0)
                     {
                         Console.WriteLine("Received empty packet");
