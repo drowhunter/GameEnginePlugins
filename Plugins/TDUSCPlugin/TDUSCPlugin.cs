@@ -27,7 +27,7 @@ namespace YawVR_Game_Engine.Plugin
 {
     [Export(typeof(Game))]
     [ExportMetadata("Name", "Test Drive Unlimited Solar Crown")]
-    [ExportMetadata("Version", "0.4")]
+    [ExportMetadata("Version", "0.5")]
     public class TDUSCPlugin : Game, IDisposable
     {
         Stopwatch stopwatch = new Stopwatch();
@@ -49,7 +49,7 @@ namespace YawVR_Game_Engine.Plugin
         bool testing = false;
         private UdpClient socket;
         private UdpClient forwardingSocket;
-        private bool _clientConnected = false;
+        
 
         private const float _sample_rate = 1 / 60f;
         private const float RAD_2_DEG = 57.29578f;
@@ -131,16 +131,17 @@ namespace YawVR_Game_Engine.Plugin
             socket = new UdpClient(gameport);
             socket.Client.ReceiveTimeout = 60000;
 
-            //remoteIP = new IPEndPoint(IPAddress.Loopback, gameport);
-            //socket.Connect(remoteIP);
-            //socket.Send(new byte[3] { 1, 1, 0 }, 3);
-            //socket.Send(new byte[3] { 1, 1, 0 }, 3);
-
             do
             {
                 try
                 {
-                    await StartForwardingIfRequired(cancellationTokenSource.Token);
+                    if (_settings.Get<bool>(FORWARDING_ENABLED))
+                    {
+                        int port = _settings.Get<int>(FORWARDING_PORT);
+                        forwardingSocket = new UdpClient();
+
+                        forwardingSocket.Connect(new IPEndPoint(IPAddress.Loopback, port));
+                    }
 
                     var thread = new Thread(ReadFunction);
 
@@ -148,10 +149,6 @@ namespace YawVR_Game_Engine.Plugin
                     thread.Start();
                     isStarted = true;
                     error = false;
-
-                    //await Task.WhenAll(
-                    //    StartForwardingIfRequired(cancellationTokenSource.Token),
-                    //    ReadFunctionAsync(cancellationTokenSource.Token));//.ConfigureAwait(false);
 
                     Log("Workers released");
                 }
@@ -169,22 +166,7 @@ namespace YawVR_Game_Engine.Plugin
             } while (error);
         }
 
-        private async Task StartForwardingIfRequired(CancellationToken cancellationToken = default)
-        {
-
-            if (_settings.Get<bool>(FORWARDING_ENABLED))
-            {
-                forwardingSocket = new UdpClient(_settings.Get<int>(FORWARDING_PORT));
-                
-                LogLine("Listening on port " + _settings.Get<int>(FORWARDING_PORT));
-                
-                var listenTask = await forwardingSocket.ReceiveAsync(cancellationToken);
-                _clientConnected = true;
-
-                Log(Environment.NewLine + "A Client has connected = " + Environment.NewLine);
-            }
-        }
-
+        
         public async Task PromptUser(CancellationToken cancellationToken = default)
         {
             await _settings.LoadAsync(defaultSettings, cancellationToken);
@@ -197,18 +179,16 @@ namespace YawVR_Game_Engine.Plugin
             return Task.Run(() => ReadFunction(), cancellationToken);
         }
 
-        public async void ReadFunction()
+        public void ReadFunction()
         {
-            int fwdPort = _settings.Get<int>(FORWARDING_PORT);
+            //int fwdPort = _settings.Get<int>(FORWARDING_PORT);
             while (isStarted)
             {
                 try
                 {
                     if(_lastpacket == null)
-                    {
-                        
-                        Log("s");
-                        
+                    {                        
+                        Log("s");                        
                     }
                     
 
@@ -223,9 +203,9 @@ namespace YawVR_Game_Engine.Plugin
                             socket.Client.ReceiveTimeout = 900; // must be less than 1000 for GE to not to reset
                         }
 
-                        if (_clientConnected && forwardingSocket != null)
+                        if (forwardingSocket != null)
                         {
-                            var t = forwardingSocket.SendAsync(buffer, fwdPort).ConfigureAwait(false);
+                            var t = forwardingSocket.Send(buffer, buffer.Length);
                             Log("f");
 
                         }
