@@ -76,7 +76,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Profiles\DefaultProfile.yawgeprofile" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Resources\description.html" />
   </ItemGroup>

@@ -36,7 +36,7 @@ namespace YawVR_Game_Engine.Plugin
         private const string FORWARDING_PORT = "forwardingPort";
         private const string INCOMING_PORT = "incomingPort";
         private UserSettingsManager<RegistryStorage> _settings;
-
+        private int gameport;
         private Thread readThread;
         private IPEndPoint remoteIP;
         
@@ -44,11 +44,11 @@ namespace YawVR_Game_Engine.Plugin
         private CancellationTokenSource cancellationTokenSource;
 
         long packetid = 0;
-        private int gameport;
+        
 
         bool testing = false;
         private UdpClient socket;
-        private UdpClient forwardingSocket;
+        private UdpClient _forwardingSocket;
         
 
         private const float _sample_rate = 1 / 60f;
@@ -138,9 +138,9 @@ namespace YawVR_Game_Engine.Plugin
                     if (_settings.Get<bool>(FORWARDING_ENABLED))
                     {
                         int port = _settings.Get<int>(FORWARDING_PORT);
-                        forwardingSocket = new UdpClient();
+                        _forwardingSocket = new UdpClient();
 
-                        forwardingSocket.Connect(new IPEndPoint(IPAddress.Loopback, port));
+                        _forwardingSocket.Connect(new IPEndPoint(IPAddress.Loopback, port));
                     }
 
                     var thread = new Thread(ReadFunction);
@@ -174,14 +174,9 @@ namespace YawVR_Game_Engine.Plugin
             await _settings.ShowFormAsync(cancellationToken: cancellationToken);
         }
 
-        public Task ReadFunctionAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => ReadFunction(), cancellationToken);
-        }
-
+        
         public void ReadFunction()
         {
-            //int fwdPort = _settings.Get<int>(FORWARDING_PORT);
             while (isStarted)
             {
                 try
@@ -203,9 +198,9 @@ namespace YawVR_Game_Engine.Plugin
                             socket.Client.ReceiveTimeout = 900; // must be less than 1000 for GE to not to reset
                         }
 
-                        if (forwardingSocket != null)
+                        if (_forwardingSocket != null)
                         {
-                            var t = forwardingSocket.Send(buffer, buffer.Length);
+                            var t = _forwardingSocket.Send(buffer, buffer.Length);
                             Log("f");
 
                         }
@@ -407,13 +402,16 @@ namespace YawVR_Game_Engine.Plugin
             }, -20f);
         }
 
-        public void PatchGame()
+        public async void PatchGame()
         {
+            await PromptUser();
+            //await _settings.ShowFormAsync(cancellationToken: cancellationTokenSource.Token).ConfigureAwait(false);
             string path = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\My Games\Test Drive Unlimited Solar Crown\UserSettings.cfg";
             if (File.Exists(path))
             {
                 string input = File.ReadAllText(path);
                 string contents = Regex.Replace(input, @"(?<=Rc2\.Telemetry\.EnableTelemetry\s*?=\s*?)false", "true", RegexOptions.Singleline);
+                contents = Regex.Replace(contents, @"(?<=Rc2\.Telemetry\.TelemetryPort\s*?=\s*?)\d+", _settings.Get<int>(INCOMING_PORT).ToString(), RegexOptions.Singleline);
                 if (!(contents != input))
                     return;
                 File.WriteAllText(path, contents);

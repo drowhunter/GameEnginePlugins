@@ -93,19 +93,19 @@ namespace GT7Plugin
                         _listenSocket = new UdpClient(new IPEndPoint(_ipAddress, _listenPort));                        
                     }
 
-                    Console.WriteLine("Waiting for packet ...");
+                    Log("Waiting for packet ...");
 
-                    var result = await _listenSocket.ReceiveAsync(cancellationToken);
-                    Console.WriteLine($"r {result.RemoteEndPoint.ToString()}");
+                    var result = await _listenSocket.ReceiveAsync();
+                    Log($"r {result.RemoteEndPoint}");
                     if (result.Buffer.Length == 0)
                     {
-                        Console.WriteLine("Received empty packet");
+                        Log("Received empty packet");
                         continue;
                     }
 
                     byte[] bytes = result.Buffer;
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"Recieved packet: {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
+                    Log($"Recieved packet: {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
                     Console.ResetColor();
 
                     ClientConnected = true;
@@ -113,13 +113,13 @@ namespace GT7Plugin
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("listen socket cancelled");
+                Log("listen socket cancelled");
                 ClientConnected = false;
                 
             }
             catch (SocketException e)
             {
-                Console.WriteLine("listen socket exception" + e);
+                Log("listen socket exception" + e);
                 ClientConnected = false;
             }
             finally
@@ -133,7 +133,7 @@ namespace GT7Plugin
                     }
 
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Stop Listening");
+                    Log("Stop Listening");
                     Console.ResetColor();
                 }
 
@@ -169,8 +169,15 @@ namespace GT7Plugin
             }
             finally
             {
-                Console.WriteLine("UdpListener disposed");
+                Log("UdpListener disposed");
             }
+        }
+
+        private void Log(string message)
+        {
+#if DEBUG
+            Console.WriteLine(message);
+#endif
         }
     }
 }

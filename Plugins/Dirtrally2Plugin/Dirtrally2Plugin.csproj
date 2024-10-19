@@ -7,7 +7,7 @@
     <ProjectGuid>{693E177B-95EC-441A-86FB-AF1F078F3EFC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Dirtrally2</RootNamespace>
+    <RootNamespace>Dirtrally2Plugin</RootNamespace>
     <AssemblyName>Dirtrally2Plugin</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -59,10 +59,17 @@
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\FormHelper\FormHelper.csproj">
+      <Project>{e78c493e-b05c-45ed-aec3-f02e17c2f369}</Project>
+      <Name>FormHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\PluginHelper\PluginHelper.csproj">
       <Project>{1d53fce9-bfbd-475a-8079-c5ba1b98313c}</Project>
       <Name>PluginHelper</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\description.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)ge.targets" />

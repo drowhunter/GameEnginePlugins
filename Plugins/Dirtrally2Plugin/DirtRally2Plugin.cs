@@ -1,4 +1,10 @@
 using Dirtrally2Plugin.Properties;
+
+using FormHelper;
+using FormHelper.Storage;
+
+using PluginHelper;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -8,6 +14,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using YawGEAPI;
 
@@ -18,7 +25,61 @@ namespace YawVR_Game_Engine.Plugin
 	[ExportMetadata("Version", "1.0")]
 	internal class DirtRally2Plugin : Game
 	{
-		private UdpClient udpClient;
+        private const string FORWARDING_ENABLED = "forwardingEnabled";
+        private const string FORWARDING_PORT = "forwardingPort";
+        private const string INCOMING_PORT = "incomingPort";
+        private UserSettingsManager<RegistryStorage> _settings;
+        private UdpClient _forwardingSocket;
+        private CancellationTokenSource _cancellationTokenSource;
+        private int _gameport;
+
+        List<UserSetting> defaultSettings = new List<UserSetting>
+        {
+            new UserSetting
+            {
+                DisplayName = "Udp Forwarding",
+                Name = FORWARDING_ENABLED,
+                Description = "Enable UDP Forwarding",
+                SettingType = SettingType.Bool,
+                Value = false
+            },
+            new UserSetting
+            {
+                DisplayName = $"Udp Forwarding Port",
+                Name = FORWARDING_PORT,
+                Description = "Port to forward UDP packets to.",
+                SettingType = SettingType.NetworkPort,
+                Value = 20778,
+                ValidationEnabled = true,
+                ValidationEnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } },
+                EnabledWhen = new Dictionary<string, string> { { "forwardingEnabled", "true" } }
+
+            },
+            new UserSetting
+            {
+                DisplayName = $"Udp Data Port",
+                Name = INCOMING_PORT,
+                Description = "The default port for incoming data from the console. (Default: 33740)",
+                SettingType = SettingType.NetworkPort,
+                Value = 20777,
+                ValidationEnabled = true
+
+            }
+        };
+        private async Task PromptUser(CancellationToken cancellationToken = default)
+        {
+            await _settings.LoadAsync(defaultSettings, cancellationToken);
+
+            await _settings.ShowFormAsync(cancellationToken: cancellationToken);
+        }
+
+        public DirtRally2Plugin()
+        {
+            _settings = new UserSettingsManager<RegistryStorage>(this.GetType().Name);
+            _cancellationTokenSource = new CancellationTokenSource();
+
+        }
+        private UdpClient udpClient;
 
 		private Thread readThread;
 
@@ -38,13 +99,14 @@ namespace YawVR_Game_Engine.Plugin
 
 		public bool PATCH_AVAILABLE => true;
 
-		public string Description => Resources.description;
+		public string Description => ResourceHelper.LoadEmbeddedResourceString("description.html");// Resources.description;
 
 		public Image Logo => Resources.logo;
 
 		public Image SmallLogo => Resources.small;
 
-		public Image Background => Resources.background;
+
+        public Image Background => Resources.background;
 
 		public List<Profile_Component> DefaultProfile()
 		{
@@ -58,7 +120,8 @@ namespace YawVR_Game_Engine.Plugin
 
 		public void Exit()
 		{
-			udpClient.Close();
+            _cancellationTokenSource.Cancel();
+            udpClient.Close();
 			udpClient = null;
 			running = false;
 		}
@@ -97,7 +160,18 @@ namespace YawVR_Game_Engine.Plugin
 
 		public void Init()
 		{
-			udpClient = new UdpClient(20777);
+            PromptUser().Wait();
+
+            _gameport = _settings.Get<int>(INCOMING_PORT);
+            if (_settings.Get<bool>(FORWARDING_ENABLED))
+            {
+                int port = _settings.Get<int>(FORWARDING_PORT);
+                _forwardingSocket = new UdpClient();
+
+                _forwardingSocket.Connect(new IPEndPoint(IPAddress.Loopback, port));
+            }
+
+            udpClient = new UdpClient(_gameport);
 			udpClient.Client.ReceiveTimeout = 2000;
 			running = true;
 			readThread = new Thread(ReadFunction);
@@ -140,7 +214,16 @@ namespace YawVR_Game_Engine.Plugin
 						float pitch = (float)(Math.Asin(0f - pitchY) * 57.3);
 						float roll = 0f - (float)(Math.Asin(0f - rollY) * 57.3);
 						float yaw = (float)Math.Atan2(pitchY + pitchX, pitchZ) * 57.3f;
-						controller.SetInput(0, speed);
+
+                        if (_forwardingSocket != null)
+                        {
+							try
+							{
+								_forwardingSocket.Send(data, data.Length);
+							} catch { }
+                        }
+
+                        controller.SetInput(0, speed);
 						controller.SetInput(1, rpm);
 						controller.SetInput(2, steer);
 						controller.SetInput(3, Gforce_lon);
@@ -170,9 +253,10 @@ namespace YawVR_Game_Engine.Plugin
 			}
 		}
 
-		public void PatchGame()
+		public async void PatchGame()
 		{
-			byte b = 0;
+            await PromptUser();
+            byte b = 0;
 			string[] array = new string[2]
 			{
 				Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT Rally 2.0/hardwaresettings/hardware_settings_config.xml",
@@ -183,14 +267,14 @@ namespace YawVR_Game_Engine.Plugin
 				if (File.Exists(array[i]))
 				{
 					XmlDocument xmlDocument = new XmlDocument();
-					xmlDocument.Load(array[1]);
+					xmlDocument.Load(array[i]);
 					XmlNode documentElement = xmlDocument.DocumentElement;
 					XmlNode xmlNode = documentElement.SelectSingleNode("motion_platform");
 					xmlNode.SelectSingleNode("dbox").Attributes["enabled"].Value = "true";
 					xmlNode.SelectSingleNode("udp").Attributes["enabled"].Value = "true";
 					xmlNode.SelectSingleNode("udp").Attributes["ip"].Value = "127.0.0.1";
 					xmlNode.SelectSingleNode("udp").Attributes["extradata"].Value = "1";
-					xmlNode.SelectSingleNode("udp").Attributes["port"].Value = "20777";
+					xmlNode.SelectSingleNode("udp").Attributes["port"].Value = _settings.Get<string>(INCOMING_PORT); // "20777";
 					xmlNode.SelectSingleNode("udp").Attributes["delay"].Value = "1";
 					xmlDocument.Save(array[i]);
 					b = (byte)(b + 1);

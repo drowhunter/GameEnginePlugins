@@ -373,7 +373,7 @@ namespace FormHelper
 
         private Label LabelWithTooltip(UserSetting setting)
         {
-            var lbl = new Label() { Text = setting.DisplayName, TextAlign = ContentAlignment.MiddleLeft };
+            var lbl = new Label() { Text = setting.DisplayName, TextAlign = ContentAlignment.MiddleLeft, Width = 200 };
             AddTooltip(lbl, setting.Description);
             return lbl;
         }

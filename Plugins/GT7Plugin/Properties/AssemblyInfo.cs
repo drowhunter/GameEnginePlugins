@@ -12,8 +12,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: Guid("7781f6be-a56f-439b-812a-bba788dbb5d8")]
 
-[assembly: AssemblyFileVersion("0.9.6.0")]
-[assembly: AssemblyVersion("0.9.6.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
 
 [assembly: InternalsVisibleTo("GT7PluginTest")]
 [assembly: InternalsVisibleTo("PluginHelperTets")]
