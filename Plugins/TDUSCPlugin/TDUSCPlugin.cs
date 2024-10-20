@@ -58,6 +58,8 @@ namespace YawVR_Game_Engine.Plugin
 
         private Vector3 _previous_local_velocity;
 
+        private Vector3Smoother _velocitySmoother = new Vector3Smoother(0.1f);
+
         /// <summary>
         /// used to compute angular velocity
         /// </summary>
@@ -91,21 +93,21 @@ namespace YawVR_Game_Engine.Plugin
             }
         }
 
-        private bool _isRunning = false;
-        private bool isRunning
+        private bool _isPaused = true;
+        private bool isPaused
         {
-            get => _isRunning;
+            get => _isPaused;
             set
             {
-                if (_isRunning != value)
+                if (_isPaused != value)
                 {
-                    _isRunning = value;
-                    if (value)
+                    _isPaused = value;
+                    if (!value)
                         stopwatch.Stop();
                     else
                         stopwatch.Restart();
                     
-                    Log(value ? "r" : "X");
+                    Log(value ? "p" : "r");
                 }   
             }
         }
@@ -120,7 +122,7 @@ namespace YawVR_Game_Engine.Plugin
             Console.WriteLine(message);
         }
 
-        public async void Init()
+        public void Init()
         {
             bool error = false;
 
@@ -188,46 +190,38 @@ namespace YawVR_Game_Engine.Plugin
                     
 
                     var buffer = socket.Receive(ref remoteIP);
-
-                    if (buffer.Length >= 280)
+                    
+                    if (isPaused == true)
                     {
-                        if (isRunning == false)
-                        {
-                            Log("R");
-                            isRunning = true;
-                            socket.Client.ReceiveTimeout = 900; // must be less than 1000 for GE to not to reset
-                        }
-
-                        if (_forwardingSocket != null)
-                        {
-                            var t = _forwardingSocket.Send(buffer, buffer.Length);
-                            Log("f");
-
-                        }
-
-                        _lastpacket = new TDUSCPacket(buffer);
-                        SetInput(isRunning);    
+                        Log("R");
+                        isPaused = false;
+                        socket.Client.ReceiveTimeout = 900; // must be less than 1000 for GE to not to reset
                     }
-                    else
+
+                    if (_forwardingSocket != null)
                     {
-                        Log("h");
-                        isRunning = false;
-                        
+                        var t = _forwardingSocket.Send(buffer, buffer.Length);
+                        Log("f");
+
                     }
+
+                    _lastpacket = new TDUSCPacket(buffer);
+                    SetInput(isPaused);    
+                    
                 }
                 catch (SocketException ex)
                 {
                     if (stopwatch.Elapsed < TimeSpan.FromMinutes(10))
                     {
-                        if (isRunning)
+                        if (!isPaused)
                         {
-                            isRunning = false;
+                            isPaused = true;
                         }
 
                         if (_lastpacket != null)
                         {
 
-                            SetInput(isRunning);
+                            SetInput(isPaused);
                         }
                     }
                     else {
@@ -240,7 +234,7 @@ namespace YawVR_Game_Engine.Plugin
                 {
                     Log(ex.Message+Environment.NewLine);
                     isStarted = false;
-                    isRunning= false;
+                    isPaused= true;
                 }
                 
             }
@@ -258,37 +252,20 @@ namespace YawVR_Game_Engine.Plugin
 
         public string[] GetInputData()
         {
-            return new string[26]
+            return new string[8]
             {
-                "Speed",
+                "speed",
                 "RPM",
-                "Steer",
-                "Force_long",
-                "Force_lat",
-                "Pitch",
-                "Roll",
-                "Yaw",
-                "suspen_pos_bl",
-                "suspen_pos_br",
-                "suspen_pos_fl",
-                "suspen_pos_fr",
-                "suspen_vel_bl",
-                "suspen_vel_br",
-                "suspen_vel_fl",
-                "suspen_vel_fr",
-                "VelocityX",
-                "VelocityY",
-                "VelocityZ",
-                "IsAlive",
-                "Surge",
-                "Sway",
-                "AccY",
-                "AngularVelocityX",
-                "AngularVelocityY",
-                "AngularVelocityZ",
+                "surge",
+                "sway",
+                "pitch",
+                "roll",
+                "yaw",
+                "isPaused",               
             };
         }
-        public void SetInput(bool isAlive)
+
+        public void SetInput(bool isPaused)
         {
             var packet = _lastpacket;
 
@@ -324,7 +301,9 @@ namespace YawVR_Game_Engine.Plugin
 
                 deltav = new Vector3(deltaFix(deltav.X), deltaFix(deltav.Y), deltaFix(deltav.Z));
 
-                angular_velocity = deltav /_sample_rate;
+                var smoothdeltav = this._velocitySmoother.Smooth(deltav);
+
+                angular_velocity = smoothdeltav / _sample_rate;
                 
                 Log($"AV: {angular_velocity.X}, {angular_velocity.Y}, {angular_velocity.Z}");
                 sway = CalculateCentrifugalAcceleration(local_velocity, angular_velocity) * Maths.GRAVITY;
@@ -355,39 +334,16 @@ namespace YawVR_Game_Engine.Plugin
             if (!testing)
             {
                 this.controller.SetInput(0, packet.Speed);
-                this.controller.SetInput(1, packet.RPM);  // not provided yet
-                this.controller.SetInput(2, packet.Steer);
-                this.controller.SetInput(3, packet.Gforce_lon);
-                this.controller.SetInput(4, packet.Gforce_lat);
-                this.controller.SetInput(5, -pitch * RAD_2_DEG);
-
-                
-                //var yaw2 = yawdeg < 0 ? yawdeg + 360 : yawdeg;
-
-
-                this.controller.SetInput(6, roll * RAD_2_DEG);
-                this.controller.SetInput(7, ((yaw * RAD_2_DEG) + 180) % 360);
-                this.controller.SetInput(8, packet.Susp_pos_bl);
-                this.controller.SetInput(9, packet.Susp_pos_br);
-                this.controller.SetInput(10, packet.Susp_pos_fl);
-                this.controller.SetInput(11, packet.Susp_pos_fr);
-                this.controller.SetInput(12, packet.Susp_vel_bl);
-                this.controller.SetInput(13, packet.Susp_vel_br);
-                this.controller.SetInput(14, packet.Susp_vel_fl);
-                this.controller.SetInput(15, packet.Susp_vel_fr);
-                this.controller.SetInput(16, local_velocity.X);
-                this.controller.SetInput(17, local_velocity.Y);
-                this.controller.SetInput(18, local_velocity.Z);
-                this.controller.SetInput(19, isAlive ? 1f : 0.0f);
-                this.controller.SetInput(20, surge);
-                this.controller.SetInput(21, sway);
-                this.controller.SetInput(22, heave);
-                this.controller.SetInput(23, angular_velocity.X);
-                this.controller.SetInput(24, angular_velocity.Y);
-                this.controller.SetInput(25, angular_velocity.Z);
+                this.controller.SetInput(1, packet.RPM);  
+                this.controller.SetInput(2, packet.Gforce_lon);
+                this.controller.SetInput(3, sway);
+                this.controller.SetInput(4, -pitch * RAD_2_DEG);
+                this.controller.SetInput(5, roll * RAD_2_DEG);
+                this.controller.SetInput(6, ((yaw * RAD_2_DEG) + 180) % 360);
+                this.controller.SetInput(7, isPaused ? 1f : 0.0f);                
             }
 
-            Log(isRunning ? "." : "x");
+            Log(this.isPaused ? "." : "x");
             _previous_local_velocity = local_velocity;
         }
 
@@ -504,7 +460,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             cancellationTokenSource.Cancel();
             isStarted = false;
-            isRunning = false;
+            isPaused = false;
             Dispose();
         }
 
@@ -519,6 +475,24 @@ namespace YawVR_Game_Engine.Plugin
             Console.CursorLeft = left;
             Console.CursorTop = top;
             Console.Write(message);
+        }
+
+        public class Vector3Smoother
+        {
+            private readonly float alpha;  // Smoothing factor
+            private Vector3 smoothedValue;
+
+            public Vector3Smoother(float alpha)
+            {
+                this.alpha = alpha;
+                smoothedValue = Vector3.Zero;
+            }
+
+            public Vector3 Smooth(Vector3 newValue)
+            {
+                smoothedValue = alpha * newValue + (1 - alpha) * smoothedValue;
+                return smoothedValue;
+            }
         }
         #endregion
     }
