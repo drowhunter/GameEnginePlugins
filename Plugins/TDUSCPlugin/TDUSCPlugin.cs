@@ -306,11 +306,9 @@ namespace YawVR_Game_Engine.Plugin
                     world_rollV.Z, world_pitchV.Z, world_yawV.Z, 0.0f, 
                     0.0f, 0.0f, 0.0f, 1f)
                 );
-            
 
-            (float pitch, float yaw, float roll) = Q.ToEuler(false);
+            (float pitch, float roll, float yaw) = Q.ToEuler(false);
             
-
             Vector3 local_velocity = Maths.WorldtoLocal(Q, worldVelocity);
 
             float sway = 0.0f;
@@ -322,13 +320,28 @@ namespace YawVR_Game_Engine.Plugin
             Vector3 rotation = new Vector3(pitch, yaw, roll);
             if (_lastRotation != null)
             {
-                angular_velocity = (rotation - _lastRotation) * (Maths.GRAVITY /_sample_rate);
-                sway = CalculateCentrifugalAcceleration(local_velocity, angular_velocity);
+                var deltav = rotation - _lastRotation;
+
+                deltav = new Vector3(deltaFix(deltav.X), deltaFix(deltav.Y), deltaFix(deltav.Z));
+
+                angular_velocity = deltav /_sample_rate;
+                
+                Log($"AV: {angular_velocity.X}, {angular_velocity.Y}, {angular_velocity.Z}");
+                sway = CalculateCentrifugalAcceleration(local_velocity, angular_velocity) * Maths.GRAVITY;
 
                 _lastRotation = rotation;
             }
 
-            Vector3 previousLocalVelocity = _previous_local_velocity;
+            float deltaFix(float value)
+            {
+                if (Math.Abs(value) > Math.PI)
+                {
+                    return value - Math.Sign(value) * 2 * (float)Math.PI;
+                }
+
+                return value;
+            }
+
 
             if (_previous_local_velocity != null)
             {
@@ -347,8 +360,13 @@ namespace YawVR_Game_Engine.Plugin
                 this.controller.SetInput(3, packet.Gforce_lon);
                 this.controller.SetInput(4, packet.Gforce_lat);
                 this.controller.SetInput(5, -pitch * RAD_2_DEG);
-                this.controller.SetInput(6, yaw * RAD_2_DEG);
-                this.controller.SetInput(7, -roll * RAD_2_DEG);
+
+                
+                //var yaw2 = yawdeg < 0 ? yawdeg + 360 : yawdeg;
+
+
+                this.controller.SetInput(6, roll * RAD_2_DEG);
+                this.controller.SetInput(7, ((yaw * RAD_2_DEG) + 180) % 360);
                 this.controller.SetInput(8, packet.Susp_pos_bl);
                 this.controller.SetInput(9, packet.Susp_pos_br);
                 this.controller.SetInput(10, packet.Susp_pos_fl);
@@ -363,10 +381,10 @@ namespace YawVR_Game_Engine.Plugin
                 this.controller.SetInput(19, isAlive ? 1f : 0.0f);
                 this.controller.SetInput(20, surge);
                 this.controller.SetInput(21, sway);
-                this.controller.SetInput(21, heave);
-                this.controller.SetInput(21, angular_velocity.X);
-                this.controller.SetInput(21, angular_velocity.Y);
-                this.controller.SetInput(21, angular_velocity.Z);
+                this.controller.SetInput(22, heave);
+                this.controller.SetInput(23, angular_velocity.X);
+                this.controller.SetInput(24, angular_velocity.Y);
+                this.controller.SetInput(25, angular_velocity.Z);
             }
 
             Log(isRunning ? "." : "x");
@@ -494,6 +512,13 @@ namespace YawVR_Game_Engine.Plugin
         {
             this.controller = controller;
             this.dispatcher = dispatcher;
+        }
+
+        private void Log(string message, int top = 0, int left= 0)
+        {
+            Console.CursorLeft = left;
+            Console.CursorTop = top;
+            Console.Write(message);
         }
         #endregion
     }
