@@ -1,4 +1,4 @@
-using Dirtrally2Plugin.Properties;
+using Dirt3Plugin.Properties;
 
 using FormHelper;
 using FormHelper.Storage;
@@ -21,9 +21,9 @@ using YawGEAPI;
 namespace YawVR_Game_Engine.Plugin
 {
 	[Export(typeof(Game))]
-	[ExportMetadata("Name", "Dirt Rally 2")]
-	[ExportMetadata("Version", "1.1")]
-	internal class DirtRally2Plugin : Game
+	[ExportMetadata("Name", "Dirt 3")]
+	[ExportMetadata("Version", "1.0")]
+	internal class Dirt3Plugin : Game
 	{
         private const string FORWARDING_ENABLED = "forwardingEnabled";
         private const string FORWARDING_PORT = "forwardingPort";
@@ -73,7 +73,7 @@ namespace YawVR_Game_Engine.Plugin
             await _settings.ShowFormAsync(cancellationToken: cancellationToken);
         }
 
-        public DirtRally2Plugin()
+        public Dirt3Plugin()
         {
             _settings = new UserSettingsManager<RegistryStorage>(this.GetType().Name);
             _cancellationTokenSource = new CancellationTokenSource();
@@ -91,11 +91,11 @@ namespace YawVR_Game_Engine.Plugin
 
 		private bool running = false;
 
-		public string PROCESS_NAME => "dirtrally2";
+		public string PROCESS_NAME => "dirt3_game";
 
-		public int STEAM_ID => 690790;
+		public int STEAM_ID => 321040;
 
-		public string AUTHOR => "YawVR";
+		public string AUTHOR => "Drowhunter";
 
 		public bool PATCH_AVAILABLE => true;
 
@@ -160,7 +160,7 @@ namespace YawVR_Game_Engine.Plugin
 
 		public void Init()
 		{
-            PromptUser().Wait();
+            //PromptUser().Wait();
 
             _gameport = _settings.Get<int>(INCOMING_PORT);
             if (_settings.Get<bool>(FORWARDING_ENABLED))
@@ -256,34 +256,29 @@ namespace YawVR_Game_Engine.Plugin
 		public async void PatchGame()
 		{
             await PromptUser();
-            byte b = 0;
-			string[] array = new string[2]
+            bool patched = false;
+
+			var file = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT3/hardwaresettings/hardware_settings_config.xml";
+
+            if (File.Exists(file))
 			{
-				Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT Rally 2.0/hardwaresettings/hardware_settings_config.xml",
-				Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT Rally 2.0/hardwaresettings/hardware_settings_config_vr.xml"
-			};
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (File.Exists(array[i]))
-				{
-					XmlDocument xmlDocument = new XmlDocument();
-					xmlDocument.Load(array[i]);
-					XmlNode documentElement = xmlDocument.DocumentElement;
-					XmlNode xmlNode = documentElement.SelectSingleNode("motion_platform");
-					xmlNode.SelectSingleNode("dbox").Attributes["enabled"].Value = "true";
-					xmlNode.SelectSingleNode("udp").Attributes["enabled"].Value = "true";
-					xmlNode.SelectSingleNode("udp").Attributes["ip"].Value = "127.0.0.1";
-					xmlNode.SelectSingleNode("udp").Attributes["extradata"].Value = "1";
-					xmlNode.SelectSingleNode("udp").Attributes["port"].Value = _settings.Get<string>(INCOMING_PORT); // "20777";
-					xmlNode.SelectSingleNode("udp").Attributes["delay"].Value = "1";
-					xmlDocument.Save(array[i]);
-					b = (byte)(b + 1);
-					dispatcher.ShowNotification(NotificationType.INFO, array[i] + " patched!");
-				}
+				XmlDocument xmlDocument = new XmlDocument();
+				xmlDocument.Load(file);
+				XmlNode documentElement = xmlDocument.DocumentElement;
+				XmlNode motionNode = documentElement.SelectSingleNode("motion");
+				motionNode.Attributes["enabled"].Value = "true";
+				motionNode.Attributes["ip"].Value = "127.0.0.1";
+				motionNode.Attributes["extradata"].Value = "1";
+				motionNode.Attributes["port"].Value = _settings.Get<string>(INCOMING_PORT); // "20777";
+				motionNode.Attributes["delay"].Value = "1";
+				xmlDocument.Save(file);
+				patched = true;
+				dispatcher.ShowNotification(NotificationType.INFO, file + " patched!");
 			}
-			if (b == 0)
+			
+			if (!patched)
 			{
-				dispatcher.DialogShow("Could not patch dirt rally 2. Make sure to start the game at least once before patching!", DIALOG_TYPE.INFO);
+				dispatcher.DialogShow("Could not patch dirt 3. Make sure to start the game at least once before patching!", DIALOG_TYPE.INFO);
 			}
 		}
 
