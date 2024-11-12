@@ -19,7 +19,7 @@ using YawGEAPI;
 namespace YawVR_Game_Engine.Plugin
 {
 	[Export(typeof(Game))]
-	[ExportMetadata("Name", "Dirt 3")]
+	[ExportMetadata("Name", "Dirt 2")]
 	[ExportMetadata("Version", "1.0")]
 	internal partial class Dirt3Plugin : Game
 	{
@@ -235,7 +235,7 @@ namespace YawVR_Game_Engine.Plugin
 			
 			if (!patched)
 			{
-				dispatcher.DialogShow("Could not patch dirt 3. Make sure to start the game at least once before patching!", DIALOG_TYPE.INFO);
+				dispatcher.DialogShow("Could not patch dirt 2. Make sure to start the game at least once before patching!", DIALOG_TYPE.INFO);
 			}
 		}
 

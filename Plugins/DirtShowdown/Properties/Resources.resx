@@ -13555,7 +13555,7 @@
   </data>
   <data name="description" xml:space="preserve">
     <value>&lt;b&gt;Click Path Game to do automatically:&lt;/b&gt;&lt;br&gt;
-To enable telemetry in dirt 3, open C:\Users\username\Documents\My Games\DirtShowdown\hardwaresettings\hardware_settings_config.xml, find the line &lt;br&gt;
+To enable telemetry in dirt 2, open C:\Users\username\Documents\My Games\DirtShowdown\hardwaresettings\hardware_settings_config.xml, find the line &lt;br&gt;
 	&amp;lt;motion enabled="true" extradata="1" ip="127.0.0.1" port="20777" delay="1" &amp;gt; &lt;br&gt; and set udp enabled to true. Port should be 20777</value>
   </data>
   <data name="logo" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

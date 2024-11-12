@@ -1,4 +1,4 @@
-using DirtShowdownPlugin.Properties;
+using Dirt2Plugin.Properties;
 
 
 
@@ -19,9 +19,9 @@ using YawGEAPI;
 namespace YawVR_Game_Engine.Plugin
 {
 	[Export(typeof(Game))]
-	[ExportMetadata("Name", "Dirt Showdown")]
+	[ExportMetadata("Name", "Dirt 2")]
 	[ExportMetadata("Version", "1.0")]
-	internal partial class DirtShowdownPlugin : Game
+	internal partial class Dirt2Plugin : Game
 	{
         
         private UdpClient _forwardingSocket;
@@ -38,7 +38,7 @@ namespace YawVR_Game_Engine.Plugin
 
 		private bool running = false;
 
-		public string PROCESS_NAME => "showdown_avx";
+		public string PROCESS_NAME => "dirt2_game";
 
 		public int STEAM_ID => 321040;
 
@@ -59,7 +59,7 @@ namespace YawVR_Game_Engine.Plugin
         {
             var defProfile = string.Empty;
 
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DirtShowdownPlugin.Profiles.Default.yawgeprofile"))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Dirt2Plugin.Profiles.Default.yawgeprofile"))
             {
                 TextReader tr = new StreamReader(stream);
                 defProfile = tr.ReadToEnd();
@@ -120,7 +120,7 @@ namespace YawVR_Game_Engine.Plugin
             //PromptUser().Wait();
 
             _gameport = settings.Get<int>(INCOMING_PORT);
-            if (_settings.Get<bool>(FORWARDING_ENABLED))
+            if (settings.Get<bool>(FORWARDING_ENABLED))
             {
                 int port = settings.Get<int>(FORWARDING_PORT);
                 _forwardingSocket = new UdpClient();
@@ -215,7 +215,7 @@ namespace YawVR_Game_Engine.Plugin
             await PromptUserAsync();
             bool patched = false;
 
-			var file = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT Showdown/hardwaresettings/hardware_settings_config.xml";
+			var file = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "/My Games/DiRT2/hardwaresettings/hardware_settings_config.xml";
 
             if (File.Exists(file))
 			{
@@ -226,7 +226,7 @@ namespace YawVR_Game_Engine.Plugin
 				motionNode.Attributes["enabled"].Value = "true";
 				motionNode.Attributes["ip"].Value = "127.0.0.1";
 				motionNode.Attributes["extradata"].Value = "1";
-				motionNode.Attributes["port"].Value = _settings.Get<string>(INCOMING_PORT);
+				motionNode.Attributes["port"].Value = settings.Get<string>(INCOMING_PORT);
 				motionNode.Attributes["delay"].Value = "1";
 				xmlDocument.Save(file);
 				patched = true;
